@@ -2,13 +2,15 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- app-version: v3 -->
   <meta name="theme-color" content="#08111d">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Jet Fuel Converter">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAABrUlEQVR4nO3SwQ3AIBDAsNL9dz6WIEJC9gR5ZM18A6ft2wG8yQEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACHkBF0oCfuDZUUYAAAAASUVORK5CYII=">
+  
   <title>Jet Fuel Converter Pro</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
@@ -17,7 +19,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
@@ -2958,17 +2960,31 @@
         setStatus('statusQrUnavailable');
         return;
       }
-      qrCodeContainer.innerHTML = '';
-      new QRCode(qrCodeContainer, {
-        text: buildQrSummary(),
-        width: 220,
-        height: 220,
-        colorDark: '#08111d',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
-      qrModal.classList.add('visible');
-      qrModal.setAttribute('aria-hidden', 'false');
+      try {
+        console.log('QR generation start');
+        if (typeof QRCode === 'undefined') {
+          throw new Error('QRCode library unavailable');
+        }
+        const summary = buildQrSummary();
+        if (!summary || !summary.trim()) {
+          throw new Error('QR summary is empty');
+        }
+        qrCodeContainer.innerHTML = '';
+        new QRCode(qrCodeContainer, {
+          text: summary || 'Jet Fuel Converter Pro',
+          width: 220,
+          height: 220,
+          colorDark: '#08111d',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+        console.log('QR generation complete');
+        qrModal.classList.add('visible');
+        qrModal.setAttribute('aria-hidden', 'false');
+      } catch (error) {
+        console.error('QR generation failed', error);
+        setStatus(error.message, false);
+      }
     }
 
     function closeQrModal() {
@@ -3135,7 +3151,20 @@
 
     function registerServiceWorker() {
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js').then((reg) => {
+          reg.update();
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (!newWorker) {
+              return;
+            }
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated') {
+                window.location.reload();
+              }
+            });
+          });
+        }).catch(() => {});
       }
     }
 

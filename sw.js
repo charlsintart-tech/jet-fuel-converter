@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jet-fuel-converter-v2';
+const CACHE_NAME = 'jet-fuel-converter-v3';
 const CORE_ASSETS = [
   './',
   './index.html',
