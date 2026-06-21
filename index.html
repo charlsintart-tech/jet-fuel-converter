@@ -416,6 +416,18 @@
       color: var(--accent-strong);
     }
 
+    #geoToggle.geo-on {
+      background: #22c55e !important;
+      border-color: #22c55e !important;
+      color: #ffffff !important;
+    }
+
+    #geoToggle.geo-off {
+      background: #eab308 !important;
+      border-color: #eab308 !important;
+      color: #1f2937 !important;
+    }
+
     .action-button {
       background: linear-gradient(180deg, rgba(93, 183, 255, 0.24), rgba(93, 183, 255, 0.14));
       border: 1px solid rgba(93, 183, 255, 0.38);
@@ -995,9 +1007,9 @@
               <div class="grid-3">
                 <div class="field">
                   <label for="massInput" id="massLabel"></label>
-                  <input id="massInput" type="number" min="0" max="5000" step="1">
+                  <input id="massInput" type="number" min="0" max="3000" step="1">
                   <div class="slider-wrap">
-                    <input id="massSlider" class="slider" type="range" min="0" max="5000" step="1">
+                    <input id="massSlider" class="slider" type="range" min="0" max="3000" step="1">
                   </div>
                 </div>
                 <div class="field">
@@ -1846,6 +1858,12 @@
       els.pressureLabel.textContent = state.pressureUnit === 'hPa' ? t('pressureLabelHpa') : t('pressureLabelInHg');
     }
 
+    function updateGeoToggleAppearance() {
+      els.geoToggle.textContent = state.geolocationEnabled ? t('geoOn') : t('geoOff');
+      els.geoToggle.classList.toggle('geo-on', state.geolocationEnabled);
+      els.geoToggle.classList.toggle('geo-off', !state.geolocationEnabled);
+    }
+
     function renderTranslations() {
       document.title = 'Jet Fuel Converter';
       document.querySelectorAll('[data-i18n]').forEach((node) => {
@@ -1854,7 +1872,7 @@
       els.sidebarSubtitle.textContent = t('sidebarSubtitle');
       els.topbarBadge.textContent = t('appBadge');
       els.citySearch.placeholder = t('citySearchPlaceholder');
-      els.geoToggle.textContent = state.geolocationEnabled ? t('geoOn') : t('geoOff');
+      updateGeoToggleAppearance();
       els.howItWorksText.textContent = t('howItWorksText');
       updateMassLabel();
     }
@@ -2077,7 +2095,7 @@
     function toggleGeolocation() {
       state.geolocationEnabled = !state.geolocationEnabled;
       localStorage.setItem(storageKeys.geolocation, String(state.geolocationEnabled));
-      els.geoToggle.textContent = state.geolocationEnabled ? t('geoOn') : t('geoOff');
+      updateGeoToggleAppearance();
       if (!state.geolocationEnabled) {
         return;
       }
@@ -2165,7 +2183,7 @@
       if (fromSlider) {
         els.massInput.value = els.massSlider.value;
       } else {
-        els.massSlider.value = Math.min(5000, Math.max(0, Number(els.massInput.value || 0)));
+        els.massSlider.value = Math.min(3000, Math.max(0, Number(els.massInput.value || 0)));
       }
       updateSliderVisual(els.massSlider, ['#ffd54a', '#ffd54a', '#ffd54a']);
       updateConversion();
