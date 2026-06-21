@@ -545,6 +545,11 @@
       background: rgba(72, 82, 96, 0.34);
     }
 
+    .weather-card[data-tone="sun"] {
+      background: rgba(255, 196, 87, 0.22);
+      border-color: rgba(255, 159, 28, 0.34);
+    }
+
     .result-card strong,
     .weather-card strong,
     .log-stat strong {
@@ -1344,6 +1349,12 @@
         weatherWindDirection: 'Direzione vento',
         weatherPressure: 'Pressione',
         weatherCondition: 'Condizioni',
+        weatherEphemeris: 'Effemeridi',
+        sunrise: 'Alba',
+        sunset: 'Tramonto',
+        dayLength: 'Durata del giorno',
+        utcLabel: 'UTC',
+        localLabel: 'locale',
         conversionTitle: 'Conversione carburante',
         conversionSubtitle: 'Calcolo realtime con slider sincronizzati, QR ed export.',
         temperatureUnits: 'Unità temperatura',
@@ -1494,6 +1505,12 @@
         weatherWindDirection: 'Wind direction',
         weatherPressure: 'Pressure',
         weatherCondition: 'Condition',
+        weatherEphemeris: 'Ephemeris',
+        sunrise: 'Sunrise',
+        sunset: 'Sunset',
+        dayLength: 'Day length',
+        utcLabel: 'UTC',
+        localLabel: 'local',
         conversionTitle: 'Fuel conversion',
         conversionSubtitle: 'Realtime calculation with synced sliders, QR and export.',
         temperatureUnits: 'Temperature units',
@@ -2020,7 +2037,7 @@
     async function loadWeather(lat, lon, city) {
       els.weatherStatus.textContent = t('weatherLoading');
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,wind_direction_10m,weather_code`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,wind_direction_10m,weather_code&daily=sunrise,sunset&timezone=auto`;
         const response = await fetch(url);
         const data = await response.json();
         const current = data.current;
@@ -2037,6 +2054,9 @@
           weatherCode: current.weather_code,
           condition: weatherCode[state.language],
           icon: weatherCode.icon,
+          sunriseLocal: data.daily?.sunrise?.[0] || null,
+          sunsetLocal: data.daily?.sunset?.[0] || null,
+          timezone: data.timezone || 'UTC',
           updatedAt: Date.now()
         };
         saveJson(storageKeys.weather, state.weather);
@@ -2049,6 +2069,24 @@
       }
     }
 
+    function formatHm(dateString, timeZone = 'UTC') {
+      if (!dateString) return '--:--';
+      return new Intl.DateTimeFormat('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone
+      }).format(new Date(dateString));
+    }
+
+    function formatDayLength(start, end) {
+      if (!start || !end) return '--:--';
+      const diff = Math.max(0, new Date(end) - new Date(start));
+      const hours = Math.floor(diff / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+
     function renderWeatherCards() {
       if (!state.weather) {
         els.weatherCards.innerHTML = `<div class="weather-card"><strong>${t('weatherCondition')}</strong><small>${t('weatherIdle')}</small></div>`;
@@ -2056,13 +2094,19 @@
       }
       const weatherCode = weatherCodes[state.weather.weatherCode] || weatherCodes[0];
       const windKnots = state.weather.windSpeed * 0.539957;
+      const sunriseUtc = formatHm(state.weather.sunriseLocal, 'UTC');
+      const sunriseLocal = formatHm(state.weather.sunriseLocal, state.weather.timezone || 'UTC');
+      const sunsetUtc = formatHm(state.weather.sunsetLocal, 'UTC');
+      const sunsetLocal = formatHm(state.weather.sunsetLocal, state.weather.timezone || 'UTC');
+      const dayLength = formatDayLength(state.weather.sunriseLocal, state.weather.sunsetLocal);
       const cards = [
         [t('weatherTemperature'), `${formatNumber(state.weather.temperature, 1)} °C`, '🌡️', getTemperatureTone(state.weather.temperature)],
         [t('weatherHumidity'), `${formatNumber(state.weather.humidity, 0)} %`, '💧', getHumidityTone(state.weather.humidity)],
         [t('weatherWindSpeed'), `${formatNumber(state.weather.windSpeed, 1)} km/h · ${formatNumber(windKnots, 1)} kn`, '💨', getWindTone(state.weather.windSpeed)],
         [t('weatherWindDirection'), `${formatNumber(state.weather.windDirection, 0)}°`, '🧭', ''],
         [t('weatherPressure'), `${formatNumber(state.weather.pressure, 1)} hPa`, '🧪', ''],
-        [t('weatherCondition'), weatherCode[state.language], weatherCode.icon, getConditionTone(state.weather.weatherCode)]
+        [t('weatherCondition'), weatherCode[state.language], weatherCode.icon, getConditionTone(state.weather.weatherCode)],
+        [t('weatherEphemeris'), `${t('sunrise')}: ${sunriseUtc} ${t('utcLabel')} / ${sunriseLocal} ${t('localLabel')}<br>${t('sunset')}: ${sunsetUtc} ${t('utcLabel')} / ${sunsetLocal} ${t('localLabel')}<br>${t('dayLength')}: ${dayLength}`, '☀️🌙', 'sun']
       ];
       els.weatherCards.innerHTML = cards.map(([label, value, icon, tone]) => `
         <div class="weather-card"${tone ? ` data-tone="${tone}"` : ''}>
