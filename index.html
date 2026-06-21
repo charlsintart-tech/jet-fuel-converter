@@ -2102,7 +2102,7 @@
       const cards = [
         [t('weatherTemperature'), `${formatNumber(state.weather.temperature, 1)} °C`, '🌡️', getTemperatureTone(state.weather.temperature)],
         [t('weatherHumidity'), `${formatNumber(state.weather.humidity, 0)} %`, '💧', getHumidityTone(state.weather.humidity)],
-        [t('weatherWindSpeed'), `${formatNumber(state.weather.windSpeed, 1)} km/h · ${formatNumber(windKnots, 1)} kn`, '💨', getWindTone(state.weather.windSpeed)],
+        [t('weatherWindSpeed'), `${formatNumber(state.weather.windSpeed, 1)} km/h · ${formatNumber(windKnots, 1)} kts`, '💨', getWindTone(state.weather.windSpeed)],
         [t('weatherWindDirection'), `${formatNumber(state.weather.windDirection, 0)}°`, '🧭', ''],
         [t('weatherPressure'), `${formatNumber(state.weather.pressure, 1)} hPa`, '🧪', ''],
         [t('weatherCondition'), weatherCode[state.language], weatherCode.icon, getConditionTone(state.weather.weatherCode)],
