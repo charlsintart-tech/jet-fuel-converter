@@ -2113,7 +2113,7 @@
           <div class="weather-icon">${icon}</div>
           <strong>${label}</strong>
           <div>${value}</div>
-          <small>${state.weather.city}</small>
+          <small>${label === t('weatherEphemeris') ? state.weather.city : ''}</small>
         </div>
       `).join('');
     }
