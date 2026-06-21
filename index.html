@@ -2106,7 +2106,7 @@
         [t('weatherWindDirection'), `${formatNumber(state.weather.windDirection, 0)}°`, '🧭', ''],
         [t('weatherPressure'), `${formatNumber(state.weather.pressure, 1)} hPa`, '🧪', ''],
         [t('weatherCondition'), weatherCode[state.language], weatherCode.icon, getConditionTone(state.weather.weatherCode)],
-        [t('weatherEphemeris'), `${t('sunrise')}: ${sunriseUtc} ${t('utcLabel')} / ${sunriseLocal} ${t('localLabel')}<br>${t('sunset')}: ${sunsetUtc} ${t('utcLabel')} / ${sunsetLocal} ${t('localLabel')}<br>${t('dayLength')}: ${dayLength}`, '☀️🌙', 'sun']
+        [t('weatherEphemeris'), `${t('sunrise')}: ${sunriseUtc} ${t('utcLabel')} / ${sunriseLocal} ${t('localLabel')}<br>${t('sunset')}: ${sunsetUtc} ${t('utcLabel')} / ${sunsetLocal} ${t('localLabel')}<br>${t('dayLength')}: ${dayLength}<br>${toDms(state.weather.lat, state.weather.lon)}`, '☀️🌙', 'sun']
       ];
       els.weatherCards.innerHTML = cards.map(([label, value, icon, tone]) => `
         <div class="weather-card"${tone ? ` data-tone="${tone}"` : ''}>
