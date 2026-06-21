@@ -2,11 +2,9 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Cache-Control" content="no-cache">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <!-- app-version: v3 -->
   <meta name="theme-color" content="#08111d">
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Jet Fuel Converter">
   <meta name="mobile-web-app-capable" content="yes">
@@ -73,6 +71,11 @@
       box-sizing: border-box;
     }
 
+    html,
+    body {
+      -webkit-text-size-adjust: 100%;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -93,6 +96,12 @@
 
     a {
       color: var(--accent);
+    }
+
+    input,
+    select,
+    textarea {
+      font-size: 16px;
     }
 
     .app {
@@ -2970,6 +2979,18 @@
           throw new Error('QR summary is empty');
         }
         qrCodeContainer.innerHTML = '';
+        qrFallback.hidden = true;
+        qrFallback.textContent = '';
+        qrStatus.textContent = '';
+        new QRCode(qrCodeContainer, {
+          text: 'Jet Fuel QR Test',
+          width: 220,
+          height: 220,
+          colorDark: '#08111d',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+        qrCodeContainer.innerHTML = '';
         new QRCode(qrCodeContainer, {
           text: summary || 'Jet Fuel Converter Pro',
           width: 220,
@@ -2983,7 +3004,13 @@
         qrModal.setAttribute('aria-hidden', 'false');
       } catch (error) {
         console.error('QR generation failed', error);
+        qrCodeContainer.innerHTML = '';
+        qrFallback.hidden = false;
+        qrFallback.textContent = buildQrSummary() || 'Jet Fuel Converter Pro';
+        qrStatus.textContent = error.message;
         setStatus(error.message, false);
+        qrModal.classList.add('visible');
+        qrModal.setAttribute('aria-hidden', 'false');
       }
     }
 
@@ -3149,22 +3176,16 @@
       state.chart.update();
     }
 
-    function registerServiceWorker() {
+    function cleanupServiceWorkersAndCaches() {
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').then((reg) => {
-          reg.update();
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            if (!newWorker) {
-              return;
-            }
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'activated') {
-                window.location.reload();
-              }
-            });
-          });
-        }).catch(() => {});
+        navigator.serviceWorker.getRegistrations()
+          .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+          .catch((error) => console.error('Service worker cleanup failed', error));
+      }
+      if ('caches' in window) {
+        caches.keys()
+          .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+          .catch((error) => console.error('Cache cleanup failed', error));
       }
     }
 
@@ -3799,7 +3820,7 @@
       logDate.value = getTodayIsoDate();
       logFuelType.value = state.selectedFuelKey;
       resetLogForm();
-      registerServiceWorker();
+      cleanupServiceWorkersAndCaches();
       update();
     }
 
