@@ -1,0 +1,3768 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08111d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Jet Fuel Converter">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAABrUlEQVR4nO3SwQ3AIBDAsNL9dz6WIEJC9gR5ZM18A6ft2wG8yQEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACAEgBIAQAEIACHkBF0oCfuDZUUYAAAAASUVORK5CYII=">
+  <title>Jet Fuel Converter Pro</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://api.open-meteo.com">
+  <link rel="preconnect" href="https://geocoding-api.open-meteo.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #08111d;
+      --bg-gradient-top: rgba(93, 183, 255, 0.18);
+      --panel: rgba(12, 24, 38, 0.92);
+      --panel-border: rgba(120, 170, 220, 0.18);
+      --text: #e8f1fb;
+      --muted: #9fb3c8;
+      --accent: #5db7ff;
+      --accent-strong: #8fd3ff;
+      --success: #7ce0b8;
+      --warning: #ffca8a;
+      --danger: #ff8f8f;
+      --surface: rgba(255, 255, 255, 0.03);
+      --surface-strong: rgba(255, 255, 255, 0.06);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      --input-bg: linear-gradient(180deg, rgba(4, 10, 18, 0.96), rgba(8, 16, 28, 0.96));
+      --map-filter: saturate(0.9) brightness(0.9);
+      --touch-size: 44px;
+      --panel-radius: 24px;
+    }
+
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #eef5fb;
+      --bg-gradient-top: rgba(74, 144, 226, 0.18);
+      --panel: rgba(255, 255, 255, 0.92);
+      --panel-border: rgba(74, 144, 226, 0.16);
+      --text: #102033;
+      --muted: #4f647d;
+      --accent: #1f7ae0;
+      --accent-strong: #0f5fb8;
+      --success: #1f9d6a;
+      --warning: #b86b00;
+      --danger: #c53d3d;
+      --surface: rgba(16, 32, 51, 0.04);
+      --surface-strong: rgba(16, 32, 51, 0.08);
+      --shadow: 0 24px 60px rgba(31, 72, 120, 0.12);
+      --input-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(240, 247, 255, 0.98));
+      --map-filter: saturate(1) brightness(1);
+    }
+
+    :root[data-cockpit="true"] {
+      --touch-size: 56px;
+      --panel-radius: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, var(--bg-gradient-top), transparent 32%),
+        linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 82%, black) 100%);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      transition: background 0.25s ease, color 0.25s ease;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    .app {
+      width: min(1380px, 100%);
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+  max-width: 100%;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--panel-radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .converter,
+    .info {
+      padding: 28px;
+    }
+
+    .header-row,
+    .header-controls,
+    .section-header,
+    .toolbar,
+    .toggle-row,
+    .button-row,
+    .quick-city-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .header-row {
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .header-controls {
+      justify-content: flex-end;
+    }
+
+.mobile-bottom-bar {
+  display: none;
+}
+
+.hamburger-toggle {
+  display: none;
+}
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      color: var(--accent-strong);
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 18px 0 12px;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.05;
+    }
+
+    h2,
+    h3 {
+      margin: 0;
+    }
+
+    .lead,
+    .info p,
+    .info li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .lead {
+      margin: 0 0 24px;
+      max-width: 64ch;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .section {
+      padding: 18px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 92%, transparent), color-mix(in srgb, var(--panel) 84%, transparent));
+      border: 1px solid color-mix(in srgb, var(--panel-border) 80%, transparent);
+    }
+
+    .section-header {
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+
+    label {
+      display: block;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    input,
+    select,
+    textarea,
+    button,
+    .toggle-chip {
+      font: inherit;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      min-height: var(--touch-size);
+      border: 1px solid color-mix(in srgb, var(--accent-strong) 22%, transparent);
+      border-radius: 16px;
+      background: var(--input-bg);
+      color: var(--text);
+      padding: 14px 16px;
+  font-size: max(16px, 1rem);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: color-mix(in srgb, var(--accent) 80%, white);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+      transform: translateY(-1px);
+    }
+
+    .slider {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .slider::-webkit-slider-runnable-track {
+      height: 14px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--accent-strong) 18%, transparent);
+      background: var(--track-background, rgba(255, 255, 255, 0.08));
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      margin-top: -6px;
+      border: 2px solid color-mix(in srgb, var(--text) 90%, white);
+      background: linear-gradient(180deg, #f7fbff 0%, #b9d8f4 100%);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+
+    .slider::-moz-range-track {
+      height: 14px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--accent-strong) 18%, transparent);
+      background: var(--track-background, rgba(255, 255, 255, 0.08));
+    }
+
+    .slider::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid color-mix(in srgb, var(--text) 90%, white);
+      background: linear-gradient(180deg, #f7fbff 0%, #b9d8f4 100%);
+    }
+
+    .slider::-moz-range-progress {
+      height: 14px;
+      border-radius: 999px;
+      background: var(--progress-background, rgba(93, 183, 255, 0.5));
+    }
+
+    .toggle-chip,
+    .mode-toggle button,
+    .action-button,
+    .clear-button,
+    .theme-button,
+    .quick-city-button {
+      min-height: var(--touch-size);
+      border: 1px solid color-mix(in srgb, var(--accent-strong) 18%, transparent);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .toggle-chip:hover,
+    .mode-toggle button:hover,
+    .action-button:hover,
+    .clear-button:hover,
+    .theme-button:hover,
+    .quick-city-button:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--accent-strong) 36%, transparent);
+      background: var(--surface-strong);
+    }
+
+    .toggle-chip.active,
+    .mode-toggle button.active,
+    .theme-button.active {
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+      color: var(--accent-strong);
+    }
+
+    .theme-switcher,
+    .language-switcher,
+    .mode-toggle {
+      display: inline-flex;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid color-mix(in srgb, var(--accent-strong) 14%, transparent);
+    }
+
+    .weather-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-strong);
+      font-size: 0.9rem;
+      min-height: 20px;
+    }
+
+    .weather-loading::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid color-mix(in srgb, var(--accent-strong) 24%, transparent);
+      border-top-color: var(--accent-strong);
+      animation: spin 0.8s linear infinite;
+      opacity: 0;
+    }
+
+    .weather-loading[data-loading="true"]::before {
+      opacity: 1;
+    }
+
+    .weather-meta,
+    .status {
+      min-height: 22px;
+      font-size: 0.92rem;
+    }
+
+    .weather-meta {
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    .status {
+      margin-top: 14px;
+      color: var(--warning);
+    }
+
+    .alerts-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .alert-banner {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+    }
+
+    .alert-banner[data-level="danger"] {
+      background: rgba(197, 61, 61, 0.12);
+      border-color: rgba(197, 61, 61, 0.28);
+      color: #ffd7d7;
+    }
+
+    :root[data-theme="light"] .alert-banner[data-level="danger"] {
+      color: #8f1f1f;
+    }
+
+    .alert-banner[data-level="warning"] {
+      background: rgba(184, 107, 0, 0.12);
+      border-color: rgba(184, 107, 0, 0.28);
+      color: #ffe2b8;
+    }
+
+    :root[data-theme="light"] .alert-banner[data-level="warning"] {
+      color: #8a5200;
+    }
+
+    .alert-banner[data-level="caution"] {
+      background: rgba(255, 159, 28, 0.12);
+      border-color: rgba(255, 159, 28, 0.28);
+      color: #ffe0b3;
+    }
+
+    :root[data-theme="light"] .alert-banner[data-level="caution"] {
+      color: #8a4f00;
+    }
+
+    .alert-banner button {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      padding: 0;
+      font-size: 1rem;
+    }
+
+    .search-results {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      z-index: 20;
+      border-radius: 16px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: none;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .search-results.visible {
+      display: block;
+    }
+
+    .search-result-item {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 12px 14px;
+      cursor: pointer;
+    }
+
+    .search-result-item:hover {
+      background: var(--surface-strong);
+    }
+
+    .search-result-item small {
+      display: block;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .result-card,
+    .cockpit-card {
+      padding: 22px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 96%, transparent), color-mix(in srgb, var(--panel) 88%, transparent));
+      border: 1px solid color-mix(in srgb, var(--accent-strong) 14%, transparent);
+    }
+
+    .result-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .result-value {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .result-unit,
+    .result-subline {
+      color: var(--success);
+      font-size: 0.95rem;
+      margin-top: 8px;
+    }
+
+    .result-subline {
+      color: var(--muted);
+    }
+
+    .weather-cards,
+    .reference-grid,
+    .stats-grid,
+    .cockpit-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .weather-card,
+    .reference-card,
+    .meta-card,
+    .history-item,
+    .stats-card {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--surface-strong);
+    }
+
+    .weather-card strong,
+    .reference-card strong,
+    .meta-card strong,
+    .stats-card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .history-item small {
+      display: block;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .empty-state {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .formula {
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+      font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--accent-strong);
+      overflow-x: auto;
+    }
+
+    details {
+      border-radius: 18px;
+      border: 1px solid color-mix(in srgb, var(--accent-strong) 14%, transparent);
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 16px 18px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .table-wrap {
+      padding: 0 18px 18px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--surface-strong);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--surface-strong);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    #map {
+      width: 100%;
+      height: 320px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--panel-border);
+      filter: var(--map-filter);
+    }
+
+    .leaflet-container {
+      background: color-mix(in srgb, var(--bg) 88%, white);
+    }
+
+    .chart-wrap {
+      position: relative;
+      min-height: 280px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.visible {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(420px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .qr-preview {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 260px;
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.96);
+      margin: 16px 0;
+    }
+
+    .qr-preview img,
+    .qr-preview canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .cockpit-dashboard {
+      display: none;
+    }
+
+    .cockpit-suggestion {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+      color: var(--muted);
+    }
+
+    .log-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    :root[data-cockpit="true"] .app {
+      grid-template-columns: 1fr;
+    }
+
+    :root[data-cockpit="true"] .info {
+      display: none;
+    }
+
+    :root[data-cockpit="true"] .converter {
+      padding: 32px;
+    }
+
+    :root[data-cockpit="true"] .section {
+      padding: 22px;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 10%, transparent), transparent 40%),
+        linear-gradient(180deg, color-mix(in srgb, var(--panel) 96%, transparent), color-mix(in srgb, var(--panel) 88%, transparent));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-strong) 10%, transparent);
+    }
+
+    :root[data-cockpit="true"] .section-title {
+      font-size: 1.15rem;
+    }
+
+    :root[data-cockpit="true"] .section-subtitle,
+    :root[data-cockpit="true"] label,
+    :root[data-cockpit="true"] .result-label {
+      font-size: 1rem;
+    }
+
+    :root[data-cockpit="true"] .result-value {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+    }
+
+    :root[data-cockpit="true"] .results,
+    :root[data-cockpit="true"] .weather-cards,
+    :root[data-cockpit="true"] .stats-grid,
+    :root[data-cockpit="true"] .cockpit-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    :root[data-cockpit="true"] .cockpit-dashboard {
+      display: block;
+    }
+
+    :root[data-cockpit="true"] .hide-in-cockpit {
+      display: none !important;
+    }
+
+    :root[data-cockpit="true"] .result-card,
+    :root[data-cockpit="true"] .cockpit-card {
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at top, color-mix(in srgb, var(--accent) 12%, transparent), transparent 45%),
+        linear-gradient(180deg, color-mix(in srgb, var(--panel) 98%, transparent), color-mix(in srgb, var(--panel) 90%, transparent));
+    }
+
+    :root[data-cockpit="true"] input[type="number"],
+    :root[data-cockpit="true"] input[type="text"],
+    :root[data-cockpit="true"] input[type="date"],
+    :root[data-cockpit="true"] select,
+    :root[data-cockpit="true"] textarea,
+    :root[data-cockpit="true"] .action-button,
+    :root[data-cockpit="true"] .theme-button,
+    :root[data-cockpit="true"] .quick-city-button,
+    :root[data-cockpit="true"] .clear-button {
+      font-size: 1.05rem;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 1080px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 820px) {
+      body {
+        padding: 16px;
+      }
+
+      .grid,
+      .grid-2,
+      .results,
+      .weather-cards,
+      .reference-grid,
+      .stats-grid,
+      .cockpit-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .converter,
+      .info {
+        padding: 22px;
+      }
+    }
+
+@media (min-width: 1440px) {
+  .app {
+    grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+    align-items: start;
+  }
+
+  .info {
+    position: sticky;
+    top: 20px;
+    align-self: start;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1366px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .grid,
+  .grid-2,
+  .results,
+  .weather-cards,
+  .reference-grid,
+  .stats-grid,
+  .cockpit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 428px) {
+  body {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .theme-switcher,
+  .language-switcher {
+    display: none;
+  }
+
+  .hamburger-toggle {
+    display: inline-flex;
+  }
+
+  .mobile-bottom-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    background: color-mix(in srgb, var(--panel) 96%, transparent);
+    border-top: 1px solid var(--panel-border);
+    backdrop-filter: blur(14px);
+    z-index: 40;
+  }
+
+  .mobile-bottom-bar .action-button {
+    min-height: 48px;
+    font-size: 0.95rem;
+  }
+
+  .button-row.desktop-actions {
+    display: none;
+  }
+}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="panel converter">
+      <div class="header-row">
+        <div>
+          <div class="eyebrow" id="eyebrowText">Jet Fuel Converter Pro</div>
+          <h1 id="heroTitle">Conversione carburanti avio con meteo live, mappa e PWA.</h1>
+          <p class="lead" id="heroLead">
+            Converti massa e volume per Jet A-1, Jet A, Jet B e AvGas 100LL con densità corretta per temperatura e pressione, ricerca dinamica di qualsiasi comune italiano e strumenti operativi avanzati.
+          </p>
+          <div class="cockpit-suggestion" id="cockpitSuggestion"></div>
+        </div>
+        <div class="header-controls">
+          <button class="theme-button hamburger-toggle" id="hamburgerToggleButton" type="button">☰</button>
+          <div class="language-switcher" aria-label="Language switcher">
+            <button class="theme-button" id="languageItButton" type="button">🇮🇹 IT</button>
+            <button class="theme-button" id="languageEnButton" type="button">🇬🇧 EN</button>
+          </div>
+          <div class="theme-switcher" aria-label="Theme switcher">
+            <button class="theme-button" id="cockpitModeButton" type="button">🛫 Cockpit</button>
+            <button class="theme-button" id="themeLightButton" type="button">☀️ Giorno</button>
+            <button class="theme-button" id="themeDarkButton" type="button">🌙 Notte</button>
+            <button class="theme-button" id="themeSystemButton" type="button">🖥️ Sistema</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cockpit-dashboard section">
+        <div class="section-header">
+          <div>
+            <div class="section-title" id="cockpitDashboardTitle">Dashboard operativa</div>
+            <div class="section-subtitle" id="cockpitDashboardSubtitle">Vista rapida per tablet e cockpit.</div>
+          </div>
+        </div>
+        <div class="cockpit-grid">
+          <div class="cockpit-card">
+            <div class="result-label" id="cockpitPrimaryLabel">Volume calcolato</div>
+            <div class="result-value" id="cockpitPrimaryValue">1243.78</div>
+            <div class="result-subline" id="cockpitPrimaryMeta">litri</div>
+          </div>
+          <div class="cockpit-card">
+            <div class="result-label" id="cockpitDensityLabel">Densità</div>
+            <div class="result-value" id="cockpitDensityValue">0.80400</div>
+            <div class="result-subline">kg/L</div>
+          </div>
+          <div class="cockpit-card">
+            <div class="result-label" id="cockpitFuelLabel">Carburante</div>
+            <div class="result-value" id="cockpitFuelValue">Jet A-1</div>
+            <div class="result-subline" id="cockpitModeMeta">kg → litri</div>
+          </div>
+          <div class="cockpit-card">
+            <div class="result-label" id="cockpitWeatherLabel">Meteo</div>
+            <div class="result-value" id="cockpitWeatherValue">15.0°C</div>
+            <div class="result-subline" id="cockpitWeatherMeta">1013.25 hPa</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title" id="modeFuelTitle">Modalità e carburante</div>
+              <div class="section-subtitle" id="modeFuelSubtitle">Il tipo di carburante aggiorna densità, tabella, grafico, storico e costi.</div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="fuelType" id="fuelTypeLabel">Tipo carburante</label>
+              <select id="fuelType">
+                <option value="jet-a1">Jet A-1</option>
+                <option value="jet-a">Jet A</option>
+                <option value="jet-b">Jet B</option>
+                <option value="avgas-100ll">AvGas 100LL</option>
+              </select>
+            </div>
+            <div class="field">
+              <label id="conversionModeLabel">Modalità di conversione</label>
+              <div class="mode-toggle" role="tablist" aria-label="Conversion mode">
+                <button id="modeKgToLiters" class="active" type="button">kg → litri</button>
+                <button id="modeLitersToKg" type="button">litri → kg</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title" id="citySectionTitle">Ricerca città italiana</div>
+              <div class="section-subtitle" id="citySectionSubtitle">Ricerca dinamica via Open-Meteo Geocoding API per qualsiasi comune italiano.</div>
+            </div>
+            <div class="weather-loading" id="weatherLoading" data-loading="false"></div>
+          </div>
+          <div class="stack">
+            <div class="field">
+              <label for="citySearch" id="citySearchLabel">Cerca città</label>
+              <input id="citySearch" type="text" placeholder="Cerca città..." autocomplete="off">
+              <div class="search-results" id="cityResults"></div>
+            </div>
+            <div class="quick-city-row" id="quickCityRow"></div>
+          </div>
+          <div class="weather-meta" id="weatherMeta">Nessuna città selezionata. I valori manuali restano attivi.</div>
+          <div class="weather-cards" id="extendedWeatherCards" style="margin-top: 14px;"></div>
+          <div class="alerts-stack" id="alertsStack"></div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title" id="mapSectionTitle">Mappa interattiva</div>
+              <div class="section-subtitle" id="mapSectionSubtitle">Seleziona una località cliccando sulla mappa d'Italia.</div>
+            </div>
+          </div>
+          <div id="map" aria-label="Mappa interattiva dell'Italia"></div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title" id="unitsSectionTitle">Unità e input</div>
+              <div class="section-subtitle" id="unitsSectionSubtitle">Le conversioni interne usano sempre °C e hPa.</div>
+            </div>
+          </div>
+
+          <div class="toolbar" style="margin-bottom: 16px;">
+            <div class="pill" id="temperaturePill">Temperatura</div>
+            <div class="toggle-row" id="temperatureUnitToggle">
+              <button class="toggle-chip active" type="button" data-temp-unit="C">°C</button>
+              <button class="toggle-chip" type="button" data-temp-unit="F">°F</button>
+            </div>
+            <div class="pill" id="pressurePill">Pressione</div>
+            <div class="toggle-row" id="pressureUnitToggle">
+              <button class="toggle-chip active" type="button" data-pressure-unit="hPa">hPa</button>
+              <button class="toggle-chip" type="button" data-pressure-unit="inHg">inHg</button>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label for="massVolumeInput" id="massVolumeLabel">Massa (kg)</label>
+              <input id="massVolumeInput" type="number" inputmode="decimal" min="0" step="any" value="1000">
+              <input id="massVolumeSlider" class="slider" type="range" min="0" max="50000" step="10" value="1000" aria-label="Mass or volume slider">
+            </div>
+            <div class="field">
+              <label for="temperature" id="temperatureLabel">Temperatura (°C)</label>
+              <input id="temperature" type="number" inputmode="decimal" step="any" value="15">
+              <input id="temperatureSlider" class="slider" type="range" min="-40" max="60" step="0.1" value="15" aria-label="Temperature slider">
+            </div>
+            <div class="field">
+              <label for="pressure" id="pressureLabel">Pressione (hPa)</label>
+              <input id="pressure" type="number" inputmode="decimal" min="0" step="any" value="1013.25">
+              <input id="pressureSlider" class="slider" type="range" min="800" max="1100" step="0.25" value="1013.25" aria-label="Pressure slider">
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title" id="costSectionTitle">Costo carburante</div>
+              <div class="section-subtitle" id="costSectionSubtitle">Calcolo costo totale sul volume e prezzo equivalente per kg.</div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="currencySelect" id="currencyLabel">Valuta</label>
+              <select id="currencySelect">
+                <option value="EUR">EUR (€)</option>
+                <option value="USD">USD ($)</option>
+                <option value="GBP">GBP (£)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="pricePerLiter" id="pricePerLiterLabel">Prezzo per litro</label>
+              <input id="pricePerLiter" type="number" inputmode="decimal" min="0" step="0.001" value="0.95">
+            </div>
+          </div>
+          <div class="weather-cards" style="margin-top: 14px;">
+            <div class="weather-card">
+              <strong id="totalCostLabel">Costo totale</strong>
+              <span id="totalCostValue">€ 1,181.59</span>
+            </div>
+            <div class="weather-card">
+              <strong id="pricePerKgLabel">Prezzo per kg</strong>
+              <span id="pricePerKgValue">€ 1.18/kg</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title" id="resultSectionTitle">Risultato</div>
+              <div class="section-subtitle" id="resultSectionSubtitle">Aggiornamento in tempo reale con densità corretta.</div>
+            </div>
+          </div>
+
+          <div class="results">
+            <div class="result-card">
+              <div class="result-label" id="primaryResultLabel">Volume calcolato</div>
+              <div class="result-value" id="primaryResultValue">1243.78</div>
+              <div class="result-unit" id="primaryResultUnit">litri</div>
+              <div class="result-subline" id="gallonResult">US gal: 328.58 · Imp gal: 273.56</div>
+            </div>
+            <div class="result-card">
+              <div class="result-label" id="densityResultLabel">Densità calcolata</div>
+              <div class="result-value" id="densityValue">0.80400</div>
+              <div class="result-unit">kg/L</div>
+              <div class="result-subline" id="resultMetaLine">Manuale · aggiornamento locale</div>
+            </div>
+          </div>
+
+          <div class="status" id="status" aria-live="polite"></div>
+
+          <div class="button-row desktop-actions" style="margin-top: 16px;">
+            <button class="action-button" id="copyResultButton" type="button">Copia risultato</button>
+            <button class="action-button" id="downloadCurrentButton" type="button">Scarica report attuale</button>
+            <button class="action-button" id="downloadHistoryButton" type="button">Scarica CSV</button>
+            <button class="action-button" id="downloadPdfButton" type="button">Scarica PDF</button>
+            <button class="action-button" id="generateQrButton" type="button">Genera QR Code</button>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title" id="historySectionTitle">Storico calcoli</div>
+              <div class="section-subtitle" id="historySectionSubtitle">Ultimi 10 calcoli salvati in locale.</div>
+            </div>
+            <button class="clear-button" id="clearHistoryButton" type="button">Cancella storico</button>
+          </div>
+          <ul class="history-list" id="historyList"></ul>
+          <div class="empty-state" id="historyEmpty">Nessun calcolo salvato.</div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title" id="logSectionTitle">Log Rifornimenti</div>
+              <div class="section-subtitle" id="logSectionSubtitle">Registra, modifica ed esporta i rifornimenti operativi.</div>
+            </div>
+          </div>
+
+          <div class="stats-grid" id="logStatsGrid">
+            <div class="stats-card">
+              <strong id="logStatsEntriesLabel">Numero voci</strong>
+              <span id="logStatsEntriesValue">0</span>
+            </div>
+            <div class="stats-card">
+              <strong id="logStatsKgLabel">Totale kg</strong>
+              <span id="logStatsKgValue">0.00</span>
+            </div>
+            <div class="stats-card">
+              <strong id="logStatsLitersLabel">Totale litri</strong>
+              <span id="logStatsLitersValue">0.00</span>
+            </div>
+            <div class="stats-card">
+              <strong id="logStatsDensityLabel">Densità media</strong>
+              <span id="logStatsDensityValue">0.00000</span>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top: 16px;">
+            <div class="field">
+              <label for="logDate" id="logDateLabel">Data</label>
+              <input id="logDate" type="date">
+            </div>
+            <div class="field">
+              <label for="logLocation" id="logLocationLabel">Località / città</label>
+              <input id="logLocation" type="text">
+            </div>
+            <div class="field">
+              <label for="logRegistration" id="logRegistrationLabel">Matricola aeromobile</label>
+              <input id="logRegistration" type="text">
+            </div>
+            <div class="field">
+              <label for="logFuelType" id="logFuelTypeLabel">Tipo carburante</label>
+              <select id="logFuelType">
+                <option value="jet-a1">Jet A-1</option>
+                <option value="jet-a">Jet A</option>
+                <option value="jet-b">Jet B</option>
+                <option value="avgas-100ll">AvGas 100LL</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="logMassKg" id="logMassKgLabel">Massa (kg)</label>
+              <input id="logMassKg" type="number" inputmode="decimal" min="0" step="any">
+            </div>
+            <div class="field">
+              <label for="logVolumeLiters" id="logVolumeLitersLabel">Volume (L)</label>
+              <input id="logVolumeLiters" type="number" inputmode="decimal" min="0" step="any" readonly>
+            </div>
+            <div class="field">
+              <label for="logTemperature" id="logTemperatureLabel">Temperatura (°C)</label>
+              <input id="logTemperature" type="number" inputmode="decimal" step="any">
+            </div>
+            <div class="field">
+              <label for="logPressure" id="logPressureLabel">Pressione (hPa)</label>
+              <input id="logPressure" type="number" inputmode="decimal" step="any">
+            </div>
+            <div class="field">
+              <label for="logHumidity" id="logHumidityLabel">Umidità (%)</label>
+              <input id="logHumidity" type="number" inputmode="decimal" step="any">
+            </div>
+            <div class="field">
+              <label for="logNotes" id="logNotesLabel">Note</label>
+              <textarea id="logNotes"></textarea>
+            </div>
+          </div>
+
+          <div class="log-actions">
+            <button class="action-button" id="logAutofillWeatherButton" type="button">Auto-fill meteo</button>
+            <button class="action-button" id="logAutofillCalcButton" type="button">Usa valori calcolatore</button>
+            <button class="action-button" id="logSaveButton" type="button">Salva voce</button>
+            <button class="clear-button" id="logResetButton" type="button">Nuova voce</button>
+            <button class="action-button" id="logExportCsvButton" type="button">Esporta log CSV</button>
+            <button class="action-button" id="logExportPdfButton" type="button">Esporta log PDF</button>
+          </div>
+
+          <div class="table-wrap" style="padding-left: 0; padding-right: 0; margin-top: 16px;">
+            <table>
+              <thead>
+                <tr>
+                  <th data-sort="date" id="logHeaderDate">Data</th>
+                  <th data-sort="location" id="logHeaderLocation">Località</th>
+                  <th data-sort="registration" id="logHeaderRegistration">Matricola</th>
+                  <th data-sort="fuelType" id="logHeaderFuel">Carburante</th>
+                  <th data-sort="massKg" id="logHeaderKg">kg</th>
+                  <th data-sort="volumeLiters" id="logHeaderLiters">L</th>
+                  <th data-sort="density" id="logHeaderDensity">Densità</th>
+                  <th id="logHeaderActions">Azioni</th>
+                </tr>
+              </thead>
+              <tbody id="logTableBody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="logEmptyState">Nessun rifornimento registrato.</div>
+        </section>
+      </div>
+    </section>
+
+    <aside class="panel info hide-in-cockpit">
+      <div class="stack">
+        <section class="section">
+          <h2 id="howItWorksTitle">Come funziona</h2>
+          <p id="howItWorksText">
+            La densità del carburante avio è riferita tipicamente a 15°C e 1 atm. All’aumentare della temperatura il carburante si espande e la densità diminuisce; all’aumentare della pressione la densità cresce leggermente per effetto della comprimibilità.
+          </p>
+          <div class="formula" id="formulaBlock">
+            density(T, P) = (baseDensity - 0.00068 × (T - 15)) × (1 + 0.0000095 × (P - 1013.25))
+            <br>
+            volume(L) = mass(kg) ÷ density(T, P)
+            <br>
+            mass(kg) = volume(L) × density(T, P)
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title" id="chartSectionTitle">Grafico densità vs temperatura</div>
+              <div class="section-subtitle" id="chartSectionSubtitle">Curva del carburante selezionato con punto operativo corrente.</div>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="densityChart"></canvas>
+          </div>
+        </section>
+
+        <section class="section hide-in-cockpit">
+          <details>
+            <summary id="densityTableSummary">Tabella di riferimento densità</summary>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th id="densityTableTempHeader">Temperatura</th>
+                    <th id="densityTableDensityHeader">Densità a 1013.25 hPa</th>
+                  </tr>
+                </thead>
+                <tbody id="densityTableBody"></tbody>
+              </table>
+            </div>
+          </details>
+        </section>
+
+        <section class="section hide-in-cockpit">
+          <details>
+            <summary id="referencesSummary">Riferimenti Internazionali</summary>
+            <div class="table-wrap" style="padding-top: 0;">
+              <div class="reference-grid" id="referenceGrid"></div>
+            </div>
+          </details>
+        </section>
+
+        <section class="section hide-in-cockpit">
+          <div class="weather-cards">
+            <div class="meta-card">
+              <strong id="metaTempTitle">Correzione temperatura</strong>
+              <span id="metaTempText">Approssimazione lineare di −0.00068 kg/L per ogni °C rispetto a 15°C.</span>
+            </div>
+            <div class="meta-card">
+              <strong id="metaPressureTitle">Correzione pressione</strong>
+              <span id="metaPressureText">Fattore di comprimibilità ridotto per condizioni tipiche di handling aeroportuale.</span>
+            </div>
+            <div class="meta-card">
+              <strong id="metaOfflineTitle">Offline / PWA</strong>
+              <span id="metaOfflineText">Il convertitore resta disponibile offline; meteo, geocoding e mappa richiedono connessione.</span>
+            </div>
+            <div class="meta-card">
+              <strong id="metaNoteTitle">Nota operativa</strong>
+              <span id="metaNoteText">Strumento utile per stime operative e briefing rapidi, non sostituisce procedure certificate di misura fiscale o di trasferimento custodiale.</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <div class="mobile-bottom-bar">
+    <button class="action-button" id="mobileExportButton" type="button">Export</button>
+    <button class="action-button" id="mobileQrButton" type="button">QR</button>
+    <button class="action-button" id="mobileMenuButton" type="button">Menu</button>
+  </div>
+
+  <div class="modal-backdrop" id="qrModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="section-header" style="margin-bottom: 0;">
+        <div>
+          <h3 id="qrModalTitle">QR Code calcolo</h3>
+          <div class="section-subtitle" id="qrModalSubtitle">Scansiona o salva il riepilogo corrente.</div>
+        </div>
+        <button class="clear-button" id="closeQrModalButton" type="button">✕</button>
+      </div>
+      <div class="qr-preview" id="qrCodeContainer"></div>
+      <div class="button-row">
+        <button class="action-button" id="downloadQrButton" type="button">Scarica PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const referenceTemperature = 15;
+    const temperatureSlope = 0.00068;
+    const referencePressure = 1013.25;
+    const compressibilityPerHpa = 0.0000095;
+    const litersToUsGallons = 0.264172;
+    const litersToImpGallons = 0.219969;
+    const hPaToInHg = 0.02953;
+    const historyStorageKey = 'jet-fuel-history-v4';
+    const themeStorageKey = 'jet-fuel-theme-preference';
+    const languageStorageKey = 'jet-fuel-language-preference';
+    const cockpitStorageKey = 'jet-fuel-cockpit-preference';
+    const refuelingLogStorageKey = 'jet-fuel-refueling-log-v1';
+    const maxHistoryEntries = 10;
+    const geocodeDebounceMs = 300;
+
+    const fuelTypes = {
+      'jet-a1': { name: 'Jet A-1', baseDensity: 0.804, freezingPoint: -47, flashPoint: 38, densityRange: [0.76, 0.84] },
+      'jet-a': { name: 'Jet A', baseDensity: 0.82, freezingPoint: -40, flashPoint: 38, densityRange: [0.78, 0.86] },
+      'jet-b': { name: 'Jet B', baseDensity: 0.751, freezingPoint: -60, flashPoint: -20, densityRange: [0.72, 0.79] },
+      'avgas-100ll': { name: 'AvGas 100LL', baseDensity: 0.721, freezingPoint: -58, flashPoint: -18, densityRange: [0.68, 0.76] }
+    };
+
+    const quickCities = [
+      { name: 'Roma', latitude: 41.9028, longitude: 12.4964 },
+      { name: 'Milano', latitude: 45.4642, longitude: 9.19 },
+      { name: 'Napoli', latitude: 40.8518, longitude: 14.2681 },
+      { name: 'Torino', latitude: 45.0703, longitude: 7.6869 },
+      { name: 'Firenze', latitude: 43.7696, longitude: 11.2558 },
+      { name: 'Palermo', latitude: 38.1157, longitude: 13.3615 },
+      { name: 'Bologna', latitude: 44.4949, longitude: 11.3426 },
+      { name: 'Venezia', latitude: 45.4408, longitude: 12.3155 }
+    ];
+
+    const weatherCodeMap = {
+      0: { labelIt: 'Sereno', labelEn: 'Clear sky', icon: '☀️' },
+      1: { labelIt: 'Prevalentemente sereno', labelEn: 'Mainly clear', icon: '🌤️' },
+      2: { labelIt: 'Parzialmente nuvoloso', labelEn: 'Partly cloudy', icon: '⛅' },
+      3: { labelIt: 'Coperto', labelEn: 'Overcast', icon: '☁️' },
+      45: { labelIt: 'Nebbia', labelEn: 'Fog', icon: '🌫️' },
+      48: { labelIt: 'Brina/nebbia', labelEn: 'Depositing rime fog', icon: '🌫️' },
+      51: { labelIt: 'Pioviggine leggera', labelEn: 'Light drizzle', icon: '🌦️' },
+      53: { labelIt: 'Pioviggine moderata', labelEn: 'Moderate drizzle', icon: '🌦️' },
+      55: { labelIt: 'Pioviggine intensa', labelEn: 'Dense drizzle', icon: '🌧️' },
+      61: { labelIt: 'Pioggia leggera', labelEn: 'Slight rain', icon: '🌦️' },
+      63: { labelIt: 'Pioggia moderata', labelEn: 'Moderate rain', icon: '🌧️' },
+      65: { labelIt: 'Pioggia intensa', labelEn: 'Heavy rain', icon: '🌧️' },
+      71: { labelIt: 'Neve leggera', labelEn: 'Slight snow', icon: '🌨️' },
+      73: { labelIt: 'Neve moderata', labelEn: 'Moderate snow', icon: '🌨️' },
+      75: { labelIt: 'Neve intensa', labelEn: 'Heavy snow', icon: '❄️' },
+      80: { labelIt: 'Rovesci leggeri', labelEn: 'Slight showers', icon: '🌦️' },
+      81: { labelIt: 'Rovesci moderati', labelEn: 'Moderate showers', icon: '🌧️' },
+      82: { labelIt: 'Rovesci violenti', labelEn: 'Violent showers', icon: '⛈️' },
+      95: { labelIt: 'Temporale', labelEn: 'Thunderstorm', icon: '⛈️' },
+      96: { labelIt: 'Temporale con grandine', labelEn: 'Thunderstorm with hail', icon: '⛈️' },
+      99: { labelIt: 'Temporale forte con grandine', labelEn: 'Heavy thunderstorm with hail', icon: '⛈️' }
+    };
+
+    const references = [
+      { name: 'ASTM D1655', body: 'ASTM International', descriptionKey: 'referenceAstmd1655', link: 'https://www.astm.org/d1655' },
+      { name: 'DEF STAN 91-091', body: 'UK Ministry of Defence', descriptionKey: 'referenceDefStan', link: 'https://www.dstan.mod.uk/' },
+      { name: 'IATA Guidance Material for Aviation Turbine Fuels', body: 'International Air Transport Association', descriptionKey: 'referenceIata', link: 'https://www.iata.org/' },
+      { name: 'JIG Standards', body: 'Joint Inspection Group', descriptionKey: 'referenceJig', link: 'https://www.jigonline.com/' },
+      { name: 'ICAO Annex 6', body: 'International Civil Aviation Organization', descriptionKey: 'referenceIcao', link: 'https://www.icao.int/' },
+      { name: 'Energy Institute HM 40', body: 'Energy Institute', descriptionKey: 'referenceHm40', link: 'https://www.energyinst.org/' },
+      { name: 'IP 200 Series / PM Manual', body: 'Energy Institute / Institute of Petroleum', descriptionKey: 'referenceIp200', link: 'https://publishing.energyinst.org/' }
+    ];
+
+    const translations = {
+      it: {
+        heroTitle: 'Conversione carburanti avio con meteo live, mappa e PWA.',
+        appLead: 'Converti massa e volume per Jet A-1, Jet A, Jet B e AvGas 100LL con densità corretta per temperatura e pressione, ricerca dinamica di qualsiasi comune italiano e strumenti operativi avanzati.',
+        themeLight: '☀️ Giorno',
+        themeDark: '🌙 Notte',
+        themeSystem: '🖥️ Sistema',
+        cockpitMode: '🛫 Cockpit',
+        cockpitDashboardTitle: 'Dashboard operativa',
+        cockpitDashboardSubtitle: 'Vista rapida per tablet e cockpit.',
+        cockpitSuggest: 'Schermo tablet rilevato: prova la modalità cockpit per una vista operativa più leggibile.',
+        modeFuelTitle: 'Modalità e carburante',
+        modeFuelSubtitle: 'Il tipo di carburante aggiorna densità, tabella, grafico, storico e costi.',
+        fuelType: 'Tipo carburante',
+        conversionMode: 'Modalità di conversione',
+        modeKgToLiters: 'kg → litri',
+        modeLitersToKg: 'litri → kg',
+        citySectionTitle: 'Ricerca città italiana',
+        citySectionSubtitle: 'Ricerca dinamica via Open-Meteo Geocoding API per qualsiasi comune italiano.',
+        citySearch: 'Cerca città',
+        citySearchPlaceholder: 'Cerca città...',
+        weatherIdle: 'Nessuna città selezionata. I valori manuali restano attivi.',
+        mapSectionTitle: 'Mappa interattiva',
+        mapSectionSubtitle: 'Seleziona una località cliccando sulla mappa d\'Italia.',
+        unitsSectionTitle: 'Unità e input',
+        unitsSectionSubtitle: 'Le conversioni interne usano sempre °C e hPa.',
+        temperature: 'Temperatura',
+        pressure: 'Pressione',
+        massKg: 'Massa (kg)',
+        volumeL: 'Volume (L)',
+        costSectionTitle: 'Costo carburante',
+        costSectionSubtitle: 'Calcolo costo totale sul volume e prezzo equivalente per kg.',
+        currency: 'Valuta',
+        pricePerLiter: 'Prezzo per litro',
+        totalCost: 'Costo totale',
+        pricePerKg: 'Prezzo per kg',
+        resultSectionTitle: 'Risultato',
+        resultSectionSubtitle: 'Aggiornamento in tempo reale con densità corretta.',
+        computedVolume: 'Volume calcolato',
+        computedMass: 'Massa calcolata',
+        computedDensity: 'Densità calcolata',
+        manualLocal: 'Manuale · aggiornamento locale',
+        copyResult: 'Copia risultato',
+        downloadCurrent: 'Scarica report attuale',
+        downloadCsv: 'Scarica CSV',
+        downloadPdf: 'Scarica PDF',
+        generateQr: 'Genera QR Code',
+        historySectionTitle: 'Storico calcoli',
+        historySectionSubtitle: 'Ultimi 10 calcoli salvati in locale.',
+        clearHistory: 'Cancella storico',
+        emptyHistory: 'Nessun calcolo salvato.',
+        howItWorksTitle: 'Come funziona',
+        howItWorksText: 'La densità del carburante avio è riferita tipicamente a 15°C e 1 atm. All’aumentare della temperatura il carburante si espande e la densità diminuisce; all’aumentare della pressione la densità cresce leggermente per effetto della comprimibilità.',
+        chartSectionTitle: 'Grafico densità vs temperatura',
+        chartSectionSubtitle: 'Curva del carburante selezionato con punto operativo corrente.',
+        densityTableSummary: 'Tabella di riferimento densità',
+        densityTableTempHeader: 'Temperatura',
+        densityTableDensityHeader: 'Densità a 1013.25 hPa',
+        referencesSummary: 'Riferimenti Internazionali',
+        metaTempTitle: 'Correzione temperatura',
+        metaTempText: 'Approssimazione lineare di −0.00068 kg/L per ogni °C rispetto a 15°C.',
+        metaPressureTitle: 'Correzione pressione',
+        metaPressureText: 'Fattore di comprimibilità ridotto per condizioni tipiche di handling aeroportuale.',
+        metaOfflineTitle: 'Offline / PWA',
+        metaOfflineText: 'Il convertitore resta disponibile offline; meteo, geocoding e mappa richiedono connessione.',
+        metaNoteTitle: 'Nota operativa',
+        metaNoteText: 'Strumento utile per stime operative e briefing rapidi, non sostituisce procedure certificate di misura fiscale o di trasferimento custodiale.',
+        weatherCondition: 'Condizioni',
+        weatherHumidity: 'Umidità',
+        weatherWind: 'Vento',
+        weatherWindDirection: 'Direzione vento',
+        weatherPressure: 'Pressione',
+        statusInvalid: 'Inserisci valori numerici validi per input, temperatura e pressione.',
+        statusUpdated: 'Calcolo aggiornato in tempo reale con correzione di temperatura e pressione.',
+        statusSearchFailed: 'Ricerca città non riuscita. Verifica la connessione.',
+        statusWeatherFailed: 'Recupero meteo non riuscito. Il calcolo manuale resta disponibile.',
+        statusMapFailed: 'Selezione da mappa non riuscita.',
+        statusCopied: 'Risultato copiato negli appunti.',
+        statusCopyFailed: 'Copia negli appunti non riuscita.',
+        statusNoResultCopy: 'Nessun risultato disponibile da copiare.',
+        statusNoResultExport: 'Nessun risultato disponibile da esportare.',
+        statusNoResultPdf: 'Nessun risultato disponibile da esportare in PDF.',
+        statusPdfUnavailable: 'Libreria PDF non disponibile.',
+        statusPdfDownloaded: 'Report PDF scaricato.',
+        statusCurrentDownloaded: 'Report attuale scaricato.',
+        statusCsvDownloaded: 'Storico CSV scaricato.',
+        statusNoHistory: 'Nessuno storico disponibile da esportare.',
+        statusHistoryCleared: 'Storico cancellato.',
+        statusQrUnavailable: 'Nessun risultato disponibile per il QR code.',
+        statusQrDownloaded: 'QR code scaricato.',
+        qrTitle: 'QR Code calcolo',
+        qrSubtitle: 'Scansiona o salva il riepilogo corrente.',
+        qrDownload: 'Scarica PNG',
+        loadingSearch: 'Ricerca città...',
+        loadingWeather: 'Caricamento meteo...',
+        loadingWeatherLoaded: 'Dati live caricati',
+        loadingResultsFound: 'Risultati trovati',
+        loadingNoResults: 'Nessun risultato',
+        loadingMapLookup: 'Ricerca località da mappa...',
+        weatherUpdated: 'aggiornato',
+        reportTitle: 'Report operativo carburanti avio',
+        generatedAt: 'Generato',
+        scenarioSection: 'Scenario operativo',
+        weatherSection: 'Meteo e condizioni',
+        inputResultsSection: 'Input e risultati',
+        costSection: 'Costo',
+        refsSection: 'Riferimenti internazionali',
+        location: 'Città/località',
+        fuel: 'Carburante',
+        mode: 'Modalità',
+        conditions: 'Condizioni',
+        humidity: 'Umidità',
+        wind: 'Vento',
+        windDirection: 'Direzione vento',
+        weatherPressureLabel: 'Pressione meteo',
+        primaryInput: 'Input principale',
+        mass: 'Massa',
+        volume: 'Volume',
+        usGallons: 'US gallons',
+        impGallons: 'Imperial gallons',
+        density: 'Densità',
+        totalCostLabel: 'Costo totale',
+        pricePerLiterLabel: 'Prezzo per litro',
+        pricePerKgLabel: 'Prezzo per kg',
+        sourceOfficial: 'Fonte ufficiale',
+        source: 'Fonte',
+        noData: 'n/d',
+        manual: 'Manuale',
+        reportFileName: 'jet-fuel-report.pdf',
+        currentReportFileName: 'jet-fuel-report.txt',
+        historyFileName: 'jet-fuel-history.csv',
+        qrFileName: 'jet-fuel-qr.png',
+        alertFreeze: 'Temperatura sotto il punto di congelamento di sicurezza per {fuel} ({value}°C).',
+        alertFlash: 'Temperatura sopra il flash point di {fuel} ({value}°C).',
+        alertPressureLow: 'Pressione atmosferica insolitamente bassa ({value} hPa).',
+        alertPressureHigh: 'Pressione atmosferica insolitamente alta ({value} hPa).',
+        alertDensity: 'Densità fuori dal range operativo tipico per {fuel} ({min}–{max} kg/L).',
+        alertDismiss: 'Chiudi avviso',
+        referenceAstmd1655: 'Specifica tecnica di riferimento per carburanti turbine avio, inclusi requisiti di qualità e proprietà fisiche.',
+        referenceDefStan: 'Standard britannico per turbine fuel aviation kerosene, ampiamente usato come riferimento per Jet A-1.',
+        referenceIata: 'Guida operativa per qualità, movimentazione e controllo dei carburanti turbine nel trasporto aereo.',
+        referenceJig: 'Standard internazionali per quality control, storage e into-plane fuelling negli aeroporti.',
+        referenceIcao: 'Riferimenti ICAO per operazioni di volo, inclusi requisiti generali di fuel planning e sicurezza.',
+        referenceHm40: 'Linee guida per gestione, campionamento e controllo qualità dei carburanti avio.',
+        referenceIp200: 'Tabelle e metodi per correzioni densità-volume e procedure di misura petrolifera.',
+        logSectionTitle: 'Log Rifornimenti',
+        logSectionSubtitle: 'Registra, modifica ed esporta i rifornimenti operativi.',
+        logStatsEntriesLabel: 'Numero voci',
+        logStatsKgLabel: 'Totale kg',
+        logStatsLitersLabel: 'Totale litri',
+        logStatsDensityLabel: 'Densità media',
+        logDateLabel: 'Data',
+        logLocationLabel: 'Località / città',
+        logRegistrationLabel: 'Matricola aeromobile',
+        logFuelTypeLabel: 'Tipo carburante',
+        logMassKgLabel: 'Massa (kg)',
+        logVolumeLitersLabel: 'Volume (L)',
+        logTemperatureLabel: 'Temperatura (°C)',
+        logPressureLabel: 'Pressione (hPa)',
+        logHumidityLabel: 'Umidità (%)',
+        logNotesLabel: 'Note',
+        logAutofillWeatherButton: 'Auto-fill meteo',
+        logAutofillCalcButton: 'Usa valori calcolatore',
+        logSaveButton: 'Salva voce',
+        logResetButton: 'Nuova voce',
+        logExportCsvButton: 'Esporta log CSV',
+        logExportPdfButton: 'Esporta log PDF',
+        logHeaderDate: 'Data',
+        logHeaderLocation: 'Località',
+        logHeaderRegistration: 'Matricola',
+        logHeaderFuel: 'Carburante',
+        logHeaderKg: 'kg',
+        logHeaderLiters: 'L',
+        logHeaderDensity: 'Densità',
+        logHeaderActions: 'Azioni',
+        logEmptyState: 'Nessun rifornimento registrato.',
+        logEdit: 'Modifica',
+        logDelete: 'Elimina',
+        logSaved: 'Voce log salvata.',
+        logDeleted: 'Voce log eliminata.',
+        logReset: 'Modulo log ripristinato.',
+        logWeatherFilled: 'Dati meteo copiati nel log.',
+        logCalcFilled: 'Valori del calcolatore copiati nel log.',
+        logMissing: 'Compila data, località, matricola e massa per salvare il log.',
+        logCsvDownloaded: 'Log rifornimenti CSV scaricato.',
+        logPdfDownloaded: 'Log rifornimenti PDF scaricato.',
+        logNoEntries: 'Nessuna voce log da esportare.',
+        logPdfTitle: 'Log Rifornimenti',
+        logSummaryTitle: 'Riepilogo log',
+        logNotes: 'Note'
+      },
+      en: {
+        heroTitle: 'Aviation fuel conversion with live weather, map, and PWA.',
+        appLead: 'Convert mass and volume for Jet A-1, Jet A, Jet B, and AvGas 100LL with temperature- and pressure-corrected density, dynamic search for any Italian municipality, and advanced operational tools.',
+        themeLight: '☀️ Day',
+        themeDark: '🌙 Night',
+        themeSystem: '🖥️ System',
+        cockpitMode: '🛫 Cockpit',
+        cockpitDashboardTitle: 'Operational dashboard',
+        cockpitDashboardSubtitle: 'Quick tablet and cockpit view.',
+        cockpitSuggest: 'Tablet-sized screen detected: try cockpit mode for a clearer operational layout.',
+        modeFuelTitle: 'Mode and fuel',
+        modeFuelSubtitle: 'Fuel type updates density, table, chart, history, and costs.',
+        fuelType: 'Fuel type',
+        conversionMode: 'Conversion mode',
+        modeKgToLiters: 'kg → liters',
+        modeLitersToKg: 'liters → kg',
+        citySectionTitle: 'Italian city search',
+        citySectionSubtitle: 'Dynamic search via Open-Meteo Geocoding API for any Italian municipality.',
+        citySearch: 'Search city',
+        citySearchPlaceholder: 'Search city...',
+        weatherIdle: 'No city selected. Manual values remain active.',
+        mapSectionTitle: 'Interactive map',
+        mapSectionSubtitle: 'Select a location by clicking on the Italy map.',
+        unitsSectionTitle: 'Units and inputs',
+        unitsSectionSubtitle: 'Internal conversions always use °C and hPa.',
+        temperature: 'Temperature',
+        pressure: 'Pressure',
+        massKg: 'Mass (kg)',
+        volumeL: 'Volume (L)',
+        costSectionTitle: 'Fuel cost',
+        costSectionSubtitle: 'Total cost based on volume and equivalent price per kg.',
+        currency: 'Currency',
+        pricePerLiter: 'Price per liter',
+        totalCost: 'Total cost',
+        pricePerKg: 'Price per kg',
+        resultSectionTitle: 'Result',
+        resultSectionSubtitle: 'Real-time update with corrected density.',
+        computedVolume: 'Computed volume',
+        computedMass: 'Computed mass',
+        computedDensity: 'Computed density',
+        manualLocal: 'Manual · local update',
+        copyResult: 'Copy result',
+        downloadCurrent: 'Download current report',
+        downloadCsv: 'Download CSV',
+        downloadPdf: 'Download PDF',
+        generateQr: 'Generate QR Code',
+        historySectionTitle: 'Calculation history',
+        historySectionSubtitle: 'Last 10 calculations saved locally.',
+        clearHistory: 'Clear history',
+        emptyHistory: 'No saved calculations.',
+        howItWorksTitle: 'How it works',
+        howItWorksText: 'Aviation fuel density is typically referenced at 15°C and 1 atm. As temperature rises the fuel expands and density decreases; as pressure rises density increases slightly due to compressibility.',
+        chartSectionTitle: 'Density vs temperature chart',
+        chartSectionSubtitle: 'Curve for the selected fuel with the current operating point.',
+        densityTableSummary: 'Density reference table',
+        densityTableTempHeader: 'Temperature',
+        densityTableDensityHeader: 'Density at 1013.25 hPa',
+        referencesSummary: 'International References',
+        metaTempTitle: 'Temperature correction',
+        metaTempText: 'Linear approximation of −0.00068 kg/L for each °C relative to 15°C.',
+        metaPressureTitle: 'Pressure correction',
+        metaPressureText: 'Reduced compressibility factor for typical airport handling conditions.',
+        metaOfflineTitle: 'Offline / PWA',
+        metaOfflineText: 'The converter remains available offline; weather, geocoding, and map require connectivity.',
+        metaNoteTitle: 'Operational note',
+        metaNoteText: 'Useful for operational estimates and quick briefings, but it does not replace certified fiscal or custody-transfer measurement procedures.',
+        weatherCondition: 'Conditions',
+        weatherHumidity: 'Humidity',
+        weatherWind: 'Wind',
+        weatherWindDirection: 'Wind direction',
+        weatherPressure: 'Pressure',
+        statusInvalid: 'Enter valid numeric values for input, temperature, and pressure.',
+        statusUpdated: 'Calculation updated in real time with temperature and pressure correction.',
+        statusSearchFailed: 'City search failed. Check your connection.',
+        statusWeatherFailed: 'Weather lookup failed. Manual calculation remains available.',
+        statusMapFailed: 'Map selection failed.',
+        statusCopied: 'Result copied to clipboard.',
+        statusCopyFailed: 'Clipboard copy failed.',
+        statusNoResultCopy: 'No result available to copy.',
+        statusNoResultExport: 'No result available to export.',
+        statusNoResultPdf: 'No result available to export as PDF.',
+        statusPdfUnavailable: 'PDF library unavailable.',
+        statusPdfDownloaded: 'PDF report downloaded.',
+        statusCurrentDownloaded: 'Current report downloaded.',
+        statusCsvDownloaded: 'CSV history downloaded.',
+        statusNoHistory: 'No history available to export.',
+        statusHistoryCleared: 'History cleared.',
+        statusQrUnavailable: 'No result available for QR code.',
+        statusQrDownloaded: 'QR code downloaded.',
+        qrTitle: 'Calculation QR Code',
+        qrSubtitle: 'Scan or save the current summary.',
+        qrDownload: 'Download PNG',
+        loadingSearch: 'Searching cities...',
+        loadingWeather: 'Loading weather...',
+        loadingWeatherLoaded: 'Live data loaded',
+        loadingResultsFound: 'Results found',
+        loadingNoResults: 'No results',
+        loadingMapLookup: 'Looking up map location...',
+        weatherUpdated: 'updated',
+        reportTitle: 'Operational aviation fuel report',
+        generatedAt: 'Generated',
+        scenarioSection: 'Operational scenario',
+        weatherSection: 'Weather and conditions',
+        inputResultsSection: 'Inputs and results',
+        costSection: 'Cost',
+        refsSection: 'International references',
+        location: 'City/location',
+        fuel: 'Fuel',
+        mode: 'Mode',
+        conditions: 'Conditions',
+        humidity: 'Humidity',
+        wind: 'Wind',
+        windDirection: 'Wind direction',
+        weatherPressureLabel: 'Weather pressure',
+        primaryInput: 'Primary input',
+        mass: 'Mass',
+        volume: 'Volume',
+        usGallons: 'US gallons',
+        impGallons: 'Imperial gallons',
+        density: 'Density',
+        totalCostLabel: 'Total cost',
+        pricePerLiterLabel: 'Price per liter',
+        pricePerKgLabel: 'Price per kg',
+        sourceOfficial: 'Official source',
+        source: 'Source',
+        noData: 'n/a',
+        manual: 'Manual',
+        reportFileName: 'jet-fuel-report.pdf',
+        currentReportFileName: 'jet-fuel-report.txt',
+        historyFileName: 'jet-fuel-history.csv',
+        qrFileName: 'jet-fuel-qr.png',
+        alertFreeze: 'Temperature below the safe freezing point for {fuel} ({value}°C).',
+        alertFlash: 'Temperature above the flash point for {fuel} ({value}°C).',
+        alertPressureLow: 'Atmospheric pressure unusually low ({value} hPa).',
+        alertPressureHigh: 'Atmospheric pressure unusually high ({value} hPa).',
+        alertDensity: 'Density outside the typical operating range for {fuel} ({min}–{max} kg/L).',
+        alertDismiss: 'Dismiss alert',
+        referenceAstmd1655: 'Primary technical specification for aviation turbine fuels, including quality requirements and physical properties.',
+        referenceDefStan: 'UK standard for aviation turbine kerosene, widely used as a Jet A-1 reference.',
+        referenceIata: 'Operational guidance for quality, handling, and control of aviation turbine fuels in air transport.',
+        referenceJig: 'International standards for quality control, storage, and into-plane fuelling at airports.',
+        referenceIcao: 'ICAO references for flight operations, including general fuel planning and safety requirements.',
+        referenceHm40: 'Guidelines for handling, sampling, and quality control of aviation fuels.',
+        referenceIp200: 'Tables and methods for density-volume corrections and petroleum measurement procedures.',
+        logSectionTitle: 'Refueling Log',
+        logSectionSubtitle: 'Record, edit, and export operational refueling entries.',
+        logStatsEntriesLabel: 'Entries',
+        logStatsKgLabel: 'Total kg',
+        logStatsLitersLabel: 'Total liters',
+        logStatsDensityLabel: 'Average density',
+        logDateLabel: 'Date',
+        logLocationLabel: 'Location / city',
+        logRegistrationLabel: 'Aircraft registration',
+        logFuelTypeLabel: 'Fuel type',
+        logMassKgLabel: 'Mass (kg)',
+        logVolumeLitersLabel: 'Volume (L)',
+        logTemperatureLabel: 'Temperature (°C)',
+        logPressureLabel: 'Pressure (hPa)',
+        logHumidityLabel: 'Humidity (%)',
+        logNotesLabel: 'Notes',
+        logAutofillWeatherButton: 'Auto-fill weather',
+        logAutofillCalcButton: 'Use calculator values',
+        logSaveButton: 'Save entry',
+        logResetButton: 'New entry',
+        logExportCsvButton: 'Export log CSV',
+        logExportPdfButton: 'Export log PDF',
+        logHeaderDate: 'Date',
+        logHeaderLocation: 'Location',
+        logHeaderRegistration: 'Registration',
+        logHeaderFuel: 'Fuel',
+        logHeaderKg: 'kg',
+        logHeaderLiters: 'L',
+        logHeaderDensity: 'Density',
+        logHeaderActions: 'Actions',
+        logEmptyState: 'No refueling entries recorded.',
+        logEdit: 'Edit',
+        logDelete: 'Delete',
+        logSaved: 'Log entry saved.',
+        logDeleted: 'Log entry deleted.',
+        logReset: 'Log form reset.',
+        logWeatherFilled: 'Weather data copied into the log.',
+        logCalcFilled: 'Calculator values copied into the log.',
+        logMissing: 'Fill date, location, registration, and mass to save the log.',
+        logCsvDownloaded: 'Refueling log CSV downloaded.',
+        logPdfDownloaded: 'Refueling log PDF downloaded.',
+        logNoEntries: 'No log entries to export.',
+        logPdfTitle: 'Refueling Log',
+        logSummaryTitle: 'Log summary',
+        logNotes: 'Notes'
+      }
+    };
+
+    const state = {
+      mode: 'kg-to-liters',
+      temperatureUnit: 'C',
+      pressureUnit: 'hPa',
+      themePreference: 'dark',
+      language: 'it',
+      cockpitMode: false,
+      selectedFuelKey: 'jet-a1',
+      selectedLocation: null,
+      lastWeather: null,
+      history: [],
+      lastCalculationSignature: '',
+      lastCalculation: null,
+      geocodeResults: [],
+      geocodeDebounceId: null,
+      map: null,
+      marker: null,
+      chart: null,
+      dismissedAlerts: [],
+      refuelingLog: [],
+      editingLogId: null,
+      logSortKey: 'date',
+      logSortDirection: 'desc'
+    };
+
+    const root = document.documentElement;
+    const eyebrowText = document.getElementById('eyebrowText');
+    const heroTitle = document.getElementById('heroTitle');
+    const heroLead = document.getElementById('heroLead');
+    const cockpitSuggestion = document.getElementById('cockpitSuggestion');
+    const cockpitModeButton = document.getElementById('cockpitModeButton');
+    const cockpitPrimaryLabel = document.getElementById('cockpitPrimaryLabel');
+    const cockpitPrimaryValue = document.getElementById('cockpitPrimaryValue');
+    const cockpitPrimaryMeta = document.getElementById('cockpitPrimaryMeta');
+    const cockpitDensityLabel = document.getElementById('cockpitDensityLabel');
+    const cockpitDensityValue = document.getElementById('cockpitDensityValue');
+    const cockpitFuelLabel = document.getElementById('cockpitFuelLabel');
+    const cockpitFuelValue = document.getElementById('cockpitFuelValue');
+    const cockpitModeMeta = document.getElementById('cockpitModeMeta');
+    const cockpitWeatherLabel = document.getElementById('cockpitWeatherLabel');
+    const cockpitWeatherValue = document.getElementById('cockpitWeatherValue');
+    const cockpitWeatherMeta = document.getElementById('cockpitWeatherMeta');
+    const massVolumeInput = document.getElementById('massVolumeInput');
+    const massVolumeSlider = document.getElementById('massVolumeSlider');
+    const massVolumeLabel = document.getElementById('massVolumeLabel');
+    const temperatureInput = document.getElementById('temperature');
+    const temperatureSlider = document.getElementById('temperatureSlider');
+    const pressureInput = document.getElementById('pressure');
+    const pressureSlider = document.getElementById('pressureSlider');
+    const temperatureLabel = document.getElementById('temperatureLabel');
+    const pressureLabel = document.getElementById('pressureLabel');
+    const primaryResultLabel = document.getElementById('primaryResultLabel');
+    const primaryResultValue = document.getElementById('primaryResultValue');
+    const primaryResultUnit = document.getElementById('primaryResultUnit');
+    const gallonResult = document.getElementById('gallonResult');
+    const densityResultLabel = document.getElementById('densityResultLabel');
+    const densityValue = document.getElementById('densityValue');
+    const resultMetaLine = document.getElementById('resultMetaLine');
+    const status = document.getElementById('status');
+    const citySearch = document.getElementById('citySearch');
+    const cityResults = document.getElementById('cityResults');
+    const quickCityRow = document.getElementById('quickCityRow');
+    const weatherLoading = document.getElementById('weatherLoading');
+    const weatherMeta = document.getElementById('weatherMeta');
+    const extendedWeatherCards = document.getElementById('extendedWeatherCards');
+    const alertsStack = document.getElementById('alertsStack');
+    const historyList = document.getElementById('historyList');
+    const historyEmpty = document.getElementById('historyEmpty');
+    const densityTableBody = document.getElementById('densityTableBody');
+    const referenceGrid = document.getElementById('referenceGrid');
+    const copyResultButton = document.getElementById('copyResultButton');
+    const downloadCurrentButton = document.getElementById('downloadCurrentButton');
+    const downloadHistoryButton = document.getElementById('downloadHistoryButton');
+    const downloadPdfButton = document.getElementById('downloadPdfButton');
+    const generateQrButton = document.getElementById('generateQrButton');
+    const clearHistoryButton = document.getElementById('clearHistoryButton');
+    const modeKgToLiters = document.getElementById('modeKgToLiters');
+    const modeLitersToKg = document.getElementById('modeLitersToKg');
+    const temperatureUnitToggle = document.getElementById('temperatureUnitToggle');
+    const pressureUnitToggle = document.getElementById('pressureUnitToggle');
+    const fuelTypeSelect = document.getElementById('fuelType');
+    const currencySelect = document.getElementById('currencySelect');
+    const pricePerLiterInput = document.getElementById('pricePerLiter');
+    const totalCostLabel = document.getElementById('totalCostLabel');
+    const totalCostValue = document.getElementById('totalCostValue');
+    const pricePerKgLabel = document.getElementById('pricePerKgLabel');
+    const pricePerKgValue = document.getElementById('pricePerKgValue');
+    const themeLightButton = document.getElementById('themeLightButton');
+    const themeDarkButton = document.getElementById('themeDarkButton');
+    const themeSystemButton = document.getElementById('themeSystemButton');
+    const languageItButton = document.getElementById('languageItButton');
+    const languageEnButton = document.getElementById('languageEnButton');
+    const hamburgerToggleButton = document.getElementById('hamburgerToggleButton');
+    const formulaBlock = document.getElementById('formulaBlock');
+    const qrModal = document.getElementById('qrModal');
+    const qrCodeContainer = document.getElementById('qrCodeContainer');
+    const closeQrModalButton = document.getElementById('closeQrModalButton');
+    const downloadQrButton = document.getElementById('downloadQrButton');
+    const qrModalTitle = document.getElementById('qrModalTitle');
+    const qrModalSubtitle = document.getElementById('qrModalSubtitle');
+    const mobileExportButton = document.getElementById('mobileExportButton');
+    const mobileQrButton = document.getElementById('mobileQrButton');
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+    const logDate = document.getElementById('logDate');
+    const logLocation = document.getElementById('logLocation');
+    const logRegistration = document.getElementById('logRegistration');
+    const logFuelType = document.getElementById('logFuelType');
+    const logMassKg = document.getElementById('logMassKg');
+    const logVolumeLiters = document.getElementById('logVolumeLiters');
+    const logTemperature = document.getElementById('logTemperature');
+    const logPressure = document.getElementById('logPressure');
+    const logHumidity = document.getElementById('logHumidity');
+    const logNotes = document.getElementById('logNotes');
+    const logAutofillWeatherButton = document.getElementById('logAutofillWeatherButton');
+    const logAutofillCalcButton = document.getElementById('logAutofillCalcButton');
+    const logSaveButton = document.getElementById('logSaveButton');
+    const logResetButton = document.getElementById('logResetButton');
+    const logExportCsvButton = document.getElementById('logExportCsvButton');
+    const logExportPdfButton = document.getElementById('logExportPdfButton');
+    const logTableBody = document.getElementById('logTableBody');
+    const logEmptyState = document.getElementById('logEmptyState');
+    const logStatsEntriesValue = document.getElementById('logStatsEntriesValue');
+    const logStatsKgValue = document.getElementById('logStatsKgValue');
+    const logStatsLitersValue = document.getElementById('logStatsLitersValue');
+    const logStatsDensityValue = document.getElementById('logStatsDensityValue');
+
+    function t(key, replacements = {}) {
+      const dictionary = translations[state.language] || translations.it;
+      let value = dictionary[key] ?? translations.it[key] ?? key;
+      Object.entries(replacements).forEach(([replacementKey, replacementValue]) => {
+        value = value.replaceAll(`{${replacementKey}}`, replacementValue);
+      });
+      return value;
+    }
+
+    function getFuel() {
+      return fuelTypes[state.selectedFuelKey];
+    }
+
+    function getWeatherLabel(code) {
+      const weather = weatherCodeMap[code];
+      if (!weather) {
+        return state.language === 'en' ? 'Condition unavailable' : 'Condizione non disponibile';
+      }
+      return state.language === 'en' ? weather.labelEn : weather.labelIt;
+    }
+
+    function celsiusToFahrenheit(value) {
+      return (value * 9) / 5 + 32;
+    }
+
+    function fahrenheitToCelsius(value) {
+      return ((value - 32) * 5) / 9;
+    }
+
+    function hPaToInHgValue(value) {
+      return value * hPaToInHg;
+    }
+
+    function inHgToHpaValue(value) {
+      return value / hPaToInHg;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function formatNumber(value, digits) {
+      return Number.isFinite(value) ? value.toFixed(digits) : '—';
+    }
+
+    function formatCurrency(value) {
+      const currency = currencySelect.value;
+      return new Intl.NumberFormat(state.language === 'en' ? 'en-US' : 'it-IT', {
+        style: 'currency',
+        currency,
+        maximumFractionDigits: 2
+      }).format(value);
+    }
+
+    function formatTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      if (Number.isNaN(date.getTime())) {
+        return state.language === 'en' ? 'time unavailable' : 'orario non disponibile';
+      }
+      return date.toLocaleString(state.language === 'en' ? 'en-GB' : 'it-IT', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
+    function setStatus(messageKeyOrText, isKey = true) {
+      status.textContent = isKey ? t(messageKeyOrText) : messageKeyOrText;
+    }
+
+    function computeDensity(temperatureC, pressureHpa, fuelKey = state.selectedFuelKey) {
+      const baseDensity = fuelTypes[fuelKey].baseDensity;
+      const temperatureAdjusted = baseDensity - temperatureSlope * (temperatureC - referenceTemperature);
+      const pressureFactor = 1 + compressibilityPerHpa * (pressureHpa - referencePressure);
+      return temperatureAdjusted * pressureFactor;
+    }
+
+    function getDisplayedTemperatureFromCelsius(valueC) {
+      return state.temperatureUnit === 'C' ? valueC : celsiusToFahrenheit(valueC);
+    }
+
+    function getCelsiusFromDisplayedTemperature(value) {
+      return state.temperatureUnit === 'C' ? value : fahrenheitToCelsius(value);
+    }
+
+    function getDisplayedPressureFromHpa(valueHpa) {
+      return state.pressureUnit === 'hPa' ? valueHpa : hPaToInHgValue(valueHpa);
+    }
+
+    function getHpaFromDisplayedPressure(value) {
+      return state.pressureUnit === 'hPa' ? value : inHgToHpaValue(value);
+    }
+
+    function updateSliderVisual(slider, colors) {
+      const min = Number.parseFloat(slider.min);
+      const max = Number.parseFloat(slider.max);
+      const value = Number.parseFloat(slider.value);
+      const percent = ((value - min) / (max - min)) * 100;
+      const gradient = `linear-gradient(90deg, ${colors.join(', ')})`;
+      slider.style.setProperty(
+        '--track-background',
+        `linear-gradient(90deg, ${colors[0]} 0%, ${colors[0]} ${percent}%, color-mix(in srgb, var(--surface-strong) 90%, transparent) ${percent}%, color-mix(in srgb, var(--surface-strong) 90%, transparent) 100%)`
+      );
+      slider.style.setProperty('--progress-background', gradient);
+    }
+
+    function setWeatherLoading(isLoading, message = '') {
+      weatherLoading.dataset.loading = String(isLoading);
+      weatherLoading.textContent = message;
+    }
+
+    function getCurrentTemperatureC() {
+      const displayed = Number.parseFloat(temperatureInput.value);
+      return Number.isFinite(displayed) ? getCelsiusFromDisplayedTemperature(displayed) : NaN;
+    }
+
+    function getCurrentPressureHpa() {
+      const displayed = Number.parseFloat(pressureInput.value);
+      return Number.isFinite(displayed) ? getHpaFromDisplayedPressure(displayed) : NaN;
+    }
+
+    function setTemperatureDisplayFromCelsius(valueC) {
+      const displayed = getDisplayedTemperatureFromCelsius(valueC);
+      temperatureInput.value = formatNumber(displayed, 1);
+      temperatureSlider.value = clamp(displayed, Number.parseFloat(temperatureSlider.min), Number.parseFloat(temperatureSlider.max));
+      updateSliderVisual(temperatureSlider, ['#ffd54a', '#ff9f1c', '#ff5a36']);
+    }
+
+    function setPressureDisplayFromHpa(valueHpa) {
+      const displayed = getDisplayedPressureFromHpa(valueHpa);
+      pressureInput.value = formatNumber(displayed, 2);
+      pressureSlider.value = clamp(displayed, Number.parseFloat(pressureSlider.min), Number.parseFloat(pressureSlider.max));
+      updateSliderVisual(pressureSlider, ['#4da3ff', '#2fd0c8', '#6fe38a']);
+    }
+
+    function setMassVolumeDisplay(value) {
+      massVolumeInput.value = formatNumber(value, 2);
+      massVolumeSlider.value = clamp(value, Number.parseFloat(massVolumeSlider.min), Number.parseFloat(massVolumeSlider.max));
+      updateSliderVisual(massVolumeSlider, ['#d9dde3', '#f0b36a', '#ff8a3d']);
+    }
+
+    function updateTemperatureSliderRange() {
+      if (state.temperatureUnit === 'C') {
+        temperatureSlider.min = '-40';
+        temperatureSlider.max = '60';
+        temperatureSlider.step = '0.1';
+      } else {
+        temperatureSlider.min = String(celsiusToFahrenheit(-40));
+        temperatureSlider.max = String(celsiusToFahrenheit(60));
+        temperatureSlider.step = '0.1';
+      }
+    }
+
+    function updatePressureSliderRange() {
+      if (state.pressureUnit === 'hPa') {
+        pressureSlider.min = '800';
+        pressureSlider.max = '1100';
+        pressureSlider.step = '0.25';
+      } else {
+        pressureSlider.min = formatNumber(hPaToInHgValue(800), 2);
+        pressureSlider.max = formatNumber(hPaToInHgValue(1100), 2);
+        pressureSlider.step = '0.01';
+      }
+    }
+
+    function updateModeUI() {
+      const isKgToLiters = state.mode === 'kg-to-liters';
+      modeKgToLiters.classList.toggle('active', isKgToLiters);
+      modeLitersToKg.classList.toggle('active', !isKgToLiters);
+      massVolumeLabel.textContent = isKgToLiters ? t('massKg') : t('volumeL');
+      primaryResultLabel.textContent = isKgToLiters ? t('computedVolume') : t('computedMass');
+      primaryResultUnit.textContent = isKgToLiters ? (state.language === 'en' ? 'liters' : 'litri') : 'kg';
+      modeKgToLiters.textContent = t('modeKgToLiters');
+      modeLitersToKg.textContent = t('modeLitersToKg');
+      cockpitPrimaryLabel.textContent = primaryResultLabel.textContent;
+      cockpitModeMeta.textContent = isKgToLiters ? t('modeKgToLiters') : t('modeLitersToKg');
+    }
+
+    function updateUnitToggleUI() {
+      temperatureUnitToggle.querySelectorAll('[data-temp-unit]').forEach((button) => {
+        button.classList.toggle('active', button.dataset.tempUnit === state.temperatureUnit);
+      });
+      pressureUnitToggle.querySelectorAll('[data-pressure-unit]').forEach((button) => {
+        button.classList.toggle('active', button.dataset.pressureUnit === state.pressureUnit);
+      });
+      temperatureLabel.textContent = `${t('temperature')} (°${state.temperatureUnit})`;
+      pressureLabel.textContent = state.pressureUnit === 'hPa' ? `${t('pressure')} (hPa)` : `${t('pressure')} (inHg)`;
+    }
+
+    function updateThemeButtons() {
+      themeLightButton.classList.toggle('active', state.themePreference === 'light');
+      themeDarkButton.classList.toggle('active', state.themePreference === 'dark');
+      themeSystemButton.classList.toggle('active', state.themePreference === 'system');
+    }
+
+    function updateLanguageButtons() {
+      languageItButton.classList.toggle('active', state.language === 'it');
+      languageEnButton.classList.toggle('active', state.language === 'en');
+    }
+
+    function updateCockpitButton() {
+      cockpitModeButton.classList.toggle('active', state.cockpitMode);
+      root.dataset.cockpit = state.cockpitMode ? 'true' : 'false';
+    }
+
+    function applyTheme(themePreference) {
+      state.themePreference = themePreference;
+      localStorage.setItem(themeStorageKey, themePreference);
+      const resolvedTheme = themePreference === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : themePreference;
+      root.dataset.theme = resolvedTheme === 'light' ? 'light' : 'dark';
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', resolvedTheme === 'light' ? '#eef5fb' : '#08111d');
+      updateThemeButtons();
+      if (state.chart) {
+        updateDensityChart();
+      }
+    }
+
+    function applyCockpitMode(enabled) {
+      state.cockpitMode = enabled;
+      localStorage.setItem(cockpitStorageKey, String(enabled));
+      updateCockpitButton();
+      renderCockpitSuggestion();
+    }
+
+    function renderCockpitSuggestion() {
+      const isTablet = window.innerWidth >= 768 && window.innerWidth <= 1366;
+      cockpitSuggestion.style.display = isTablet && !state.cockpitMode ? 'block' : 'none';
+      cockpitSuggestion.textContent = t('cockpitSuggest');
+    }
+
+    function toggleCompactMenus() {
+      const hidden = getComputedStyle(document.querySelector('.theme-switcher')).display === 'none';
+      if (!hidden) {
+        document.querySelector('.theme-switcher').style.display = 'none';
+        document.querySelector('.language-switcher').style.display = 'none';
+      } else {
+        document.querySelector('.theme-switcher').style.display = 'inline-flex';
+        document.querySelector('.language-switcher').style.display = 'inline-flex';
+      }
+    }
+
+    function buildDensityTable() {
+      const temperatures = [-20, -10, 0, 10, 15, 20, 30, 40, 50];
+      densityTableBody.innerHTML = '';
+      temperatures.forEach((temperature) => {
+        const row = document.createElement('tr');
+        const density = computeDensity(temperature, referencePressure);
+        row.innerHTML = `<td>${temperature} °C</td><td>${formatNumber(density, 5)} kg/L</td>`;
+        densityTableBody.appendChild(row);
+      });
+    }
+
+    function renderReferences() {
+      referenceGrid.innerHTML = '';
+      references.forEach((reference) => {
+        const card = document.createElement('article');
+        card.className = 'reference-card';
+        card.innerHTML = `
+          <strong>${reference.name}</strong>
+          <div style="color: var(--muted); margin-bottom: 8px;">${reference.body}</div>
+          <div style="color: var(--muted); line-height: 1.55;">${t(reference.descriptionKey)}</div>
+          <div style="margin-top: 10px;"><a href="${reference.link}" target="_blank" rel="noreferrer">${t('sourceOfficial')}</a></div>
+        `;
+        referenceGrid.appendChild(card);
+      });
+    }
+
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(historyStorageKey);
+        state.history = raw ? JSON.parse(raw) : [];
+      } catch (error) {
+        state.history = [];
+      }
+    }
+
+    function saveHistory() {
+      localStorage.setItem(historyStorageKey, JSON.stringify(state.history));
+    }
+
+    function renderHistory() {
+      historyList.innerHTML = '';
+      historyEmpty.style.display = state.history.length ? 'none' : 'block';
+      historyEmpty.textContent = t('emptyHistory');
+      state.history.forEach((entry) => {
+        const item = document.createElement('li');
+        item.className = 'history-item';
+        item.innerHTML = `
+          <strong>${entry.fuelName} · ${entry.mode === 'kg-to-liters' ? t('modeKgToLiters') : t('modeLitersToKg')} · ${entry.city || t('manual')}</strong>
+          <small>
+            ${t('mass')}: ${entry.massKg} kg · ${t('volume')}: ${entry.volumeLiters} L · ${t('density')}: ${entry.density} kg/L<br>
+            ${t('temperature')}: ${entry.temperatureC} °C · ${t('pressure')}: ${entry.pressureHpa} hPa · ${entry.timestamp}
+          </small>
+        `;
+        historyList.appendChild(item);
+      });
+    }
+
+    function addHistoryEntry(calculation) {
+      const signature = JSON.stringify({
+        fuel: calculation.fuelKey,
+        mode: calculation.mode,
+        input: calculation.inputValue,
+        density: calculation.density,
+        temperatureC: calculation.temperatureC,
+        pressureHpa: calculation.pressureHpa,
+        city: calculation.city,
+        timestampMinute: calculation.timestamp.slice(0, 16)
+      });
+
+      if (signature === state.lastCalculationSignature) {
+        return;
+      }
+
+      state.lastCalculationSignature = signature;
+      state.history.unshift(calculation);
+      state.history = state.history.slice(0, maxHistoryEntries);
+      saveHistory();
+      renderHistory();
+    }
+
+    function getCurrentCalculation() {
+      const inputValue = Number.parseFloat(massVolumeInput.value);
+      const temperatureC = getCurrentTemperatureC();
+      const pressureHpa = getCurrentPressureHpa();
+
+      if (![inputValue, temperatureC, pressureHpa].every(Number.isFinite)) {
+        return null;
+      }
+
+      if (inputValue < 0 || pressureHpa < 0) {
+        return null;
+      }
+
+      const density = computeDensity(temperatureC, pressureHpa);
+      if (density <= 0) {
+        return null;
+      }
+
+      const volumeLiters = state.mode === 'kg-to-liters' ? inputValue / density : inputValue;
+      const massKg = state.mode === 'kg-to-liters' ? inputValue : inputValue * density;
+      const primaryResult = state.mode === 'kg-to-liters' ? volumeLiters : massKg;
+      const pricePerLiter = Number.parseFloat(pricePerLiterInput.value);
+      const totalCost = Number.isFinite(pricePerLiter) ? volumeLiters * pricePerLiter : NaN;
+      const pricePerKg = Number.isFinite(pricePerLiter) ? pricePerLiter / density : NaN;
+
+      return {
+        fuelKey: state.selectedFuelKey,
+        fuelName: getFuel().name,
+        mode: state.mode,
+        inputValue: formatNumber(inputValue, 2),
+        massKg: formatNumber(massKg, 2),
+        volumeLiters: formatNumber(volumeLiters, 2),
+        density: formatNumber(density, 5),
+        temperatureC: formatNumber(temperatureC, 2),
+        pressureHpa: formatNumber(pressureHpa, 2),
+        primaryResult,
+        city: state.selectedLocation?.name || t('manual'),
+        timestamp: new Date().toISOString(),
+        totalCost,
+        pricePerKg
+      };
+    }
+
+    function updateResultMeta() {
+      if (state.selectedLocation?.name && state.lastWeather?.time) {
+        resultMetaLine.textContent = `${state.selectedLocation.name} · ${t('weatherUpdated')} ${formatTimestamp(state.lastWeather.time)}`;
+      } else {
+        resultMetaLine.textContent = t('manualLocal');
+      }
+    }
+
+    function renderExtendedWeather() {
+      extendedWeatherCards.innerHTML = '';
+      if (!state.lastWeather) {
+        return;
+      }
+
+      const cards = [
+        { title: t('weatherCondition'), value: `${weatherCodeMap[state.lastWeather.weather_code]?.icon || '🛰️'} ${getWeatherLabel(state.lastWeather.weather_code)}` },
+        { title: t('weatherHumidity'), value: `${formatNumber(state.lastWeather.relative_humidity_2m, 0)} %` },
+        { title: t('weatherWind'), value: `💨 ${formatNumber(state.lastWeather.wind_speed_10m, 1)} km/h` },
+        { title: t('weatherWindDirection'), value: `🧭 ${formatNumber(state.lastWeather.wind_direction_10m, 0)}°` },
+        { title: t('weatherPressure'), value: `🧪 ${formatNumber(state.lastWeather.surface_pressure, 2)} hPa` }
+      ];
+
+      cards.forEach((card) => {
+        const element = document.createElement('div');
+        element.className = 'weather-card';
+        element.innerHTML = `<strong>${card.title}</strong><span>${card.value}</span>`;
+        extendedWeatherCards.appendChild(element);
+      });
+    }
+
+    function renderAlerts(calculation) {
+      alertsStack.innerHTML = '';
+      if (!calculation) {
+        return;
+      }
+
+      const fuel = getFuel();
+      const temperatureC = Number(calculation.temperatureC);
+      const pressureHpa = Number(calculation.pressureHpa);
+      const density = Number(calculation.density);
+      const alerts = [];
+
+      if (temperatureC < fuel.freezingPoint) {
+        alerts.push({
+          id: `freeze-${fuel.name}`,
+          level: 'danger',
+          icon: '❄️',
+          text: t('alertFreeze', { fuel: fuel.name, value: fuel.freezingPoint })
+        });
+      }
+
+      if (temperatureC > fuel.flashPoint) {
+        alerts.push({
+          id: `flash-${fuel.name}`,
+          level: 'danger',
+          icon: '🔥',
+          text: t('alertFlash', { fuel: fuel.name, value: fuel.flashPoint })
+        });
+      }
+
+      if (pressureHpa < 950) {
+        alerts.push({
+          id: 'pressure-low',
+          level: 'warning',
+          icon: '⚠️',
+          text: t('alertPressureLow', { value: formatNumber(pressureHpa, 2) })
+        });
+      }
+
+      if (pressureHpa > 1050) {
+        alerts.push({
+          id: 'pressure-high',
+          level: 'warning',
+          icon: '⚠️',
+          text: t('alertPressureHigh', { value: formatNumber(pressureHpa, 2) })
+        });
+      }
+
+      if (density < fuel.densityRange[0] || density > fuel.densityRange[1]) {
+        alerts.push({
+          id: `density-${fuel.name}`,
+          level: 'caution',
+          icon: '🟠',
+          text: t('alertDensity', {
+            fuel: fuel.name,
+            min: formatNumber(fuel.densityRange[0], 2),
+            max: formatNumber(fuel.densityRange[1], 2)
+          })
+        });
+      }
+
+      alerts
+        .filter((alert) => !state.dismissedAlerts.includes(alert.id))
+        .forEach((alert) => {
+          const banner = document.createElement('div');
+          banner.className = 'alert-banner';
+          banner.dataset.level = alert.level;
+          banner.innerHTML = `
+            <div><strong>${alert.icon}</strong> ${alert.text}</div>
+            <button type="button" aria-label="${t('alertDismiss')}">✕</button>
+          `;
+          banner.querySelector('button').addEventListener('click', () => {
+            state.dismissedAlerts = [...state.dismissedAlerts, alert.id];
+            renderAlerts(calculation);
+          });
+          alertsStack.appendChild(banner);
+        });
+    }
+
+    function updateCostCards(calculation) {
+      if (!calculation || !Number.isFinite(calculation.totalCost) || !Number.isFinite(calculation.pricePerKg)) {
+        totalCostValue.textContent = '—';
+        pricePerKgValue.textContent = '—';
+        return;
+      }
+      totalCostValue.textContent = formatCurrency(calculation.totalCost);
+      pricePerKgValue.textContent = `${formatCurrency(calculation.pricePerKg)}/kg`;
+    }
+
+    function updateFormulaBlock() {
+      formulaBlock.innerHTML = `
+        density(T, P) = (${getFuel().baseDensity.toFixed(3)} - 0.00068 × (T - 15)) × (1 + 0.0000095 × (P - 1013.25))
+        <br>
+        volume(L) = mass(kg) ÷ density(T, P)
+        <br>
+        mass(kg) = volume(L) × density(T, P)
+      `;
+    }
+
+    function updateCockpitDashboard(calculation) {
+      cockpitPrimaryValue.textContent = calculation ? formatNumber(calculation.primaryResult, 2) : '—';
+      cockpitPrimaryMeta.textContent = calculation ? primaryResultUnit.textContent : '—';
+      cockpitDensityLabel.textContent = t('density');
+      cockpitDensityValue.textContent = calculation ? calculation.density : '—';
+      cockpitFuelLabel.textContent = t('fuel');
+      cockpitFuelValue.textContent = getFuel().name;
+      cockpitWeatherLabel.textContent = t('weatherCondition');
+      cockpitWeatherValue.textContent = state.lastWeather ? `${formatNumber(state.lastWeather.temperature_2m, 1)}°C` : '—';
+      cockpitWeatherMeta.textContent = state.lastWeather ? `${formatNumber(state.lastWeather.surface_pressure, 2)} hPa` : '—';
+    }
+
+    function update() {
+      const calculation = getCurrentCalculation();
+
+      if (!calculation) {
+        primaryResultValue.textContent = '—';
+        densityValue.textContent = '—';
+        gallonResult.textContent = 'US gal: — · Imp gal: —';
+        setStatus('statusInvalid');
+        state.lastCalculation = null;
+        updateCostCards(null);
+        renderAlerts(null);
+        updateCockpitDashboard(null);
+        updateDensityChart();
+        return;
+      }
+
+      primaryResultValue.textContent = formatNumber(calculation.primaryResult, 2);
+      densityValue.textContent = calculation.density;
+      gallonResult.textContent = `US gal: ${formatNumber(Number(calculation.volumeLiters) * litersToUsGallons, 2)} · Imp gal: ${formatNumber(Number(calculation.volumeLiters) * litersToImpGallons, 2)}`;
+      setStatus('statusUpdated');
+      updateResultMeta();
+      updateCostCards(calculation);
+      state.lastCalculation = calculation;
+      state.dismissedAlerts = [];
+      addHistoryEntry({
+        ...calculation,
+        timestamp: formatTimestamp(calculation.timestamp)
+      });
+      renderAlerts(calculation);
+      updateCockpitDashboard(calculation);
+      updateDensityChart();
+    }
+
+    function renderQuickCities() {
+      quickCityRow.innerHTML = '';
+      quickCities.forEach((city) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'quick-city-button';
+        button.textContent = city.name;
+        button.addEventListener('click', () => {
+          selectLocation({
+            name: city.name,
+            latitude: city.latitude,
+            longitude: city.longitude,
+            admin1: '',
+            country: 'Italia'
+          });
+        });
+        quickCityRow.appendChild(button);
+      });
+    }
+
+    function renderGeocodeResults() {
+      cityResults.innerHTML = '';
+      if (!state.geocodeResults.length) {
+        cityResults.classList.remove('visible');
+        return;
+      }
+
+      state.geocodeResults.forEach((result) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'search-result-item';
+        button.innerHTML = `
+          ${result.name}
+          <small>${[result.admin1, result.admin2, result.country].filter(Boolean).join(' · ')}</small>
+        `;
+        button.addEventListener('click', () => {
+          selectLocation(result);
+          cityResults.classList.remove('visible');
+        });
+        cityResults.appendChild(button);
+      });
+
+      cityResults.classList.add('visible');
+    }
+
+    async function searchCities(query) {
+      const trimmed = query.trim();
+      if (trimmed.length < 2) {
+        state.geocodeResults = [];
+        renderGeocodeResults();
+        return;
+      }
+
+      setWeatherLoading(true, t('loadingSearch'));
+      try {
+        const url = new URL('https://geocoding-api.open-meteo.com/v1/search');
+        url.searchParams.set('name', trimmed);
+        url.searchParams.set('count', '10');
+        url.searchParams.set('language', state.language);
+        url.searchParams.set('country_code', 'IT');
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Geocoding request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        state.geocodeResults = (data.results || []).map((result) => ({
+          name: result.name,
+          latitude: result.latitude,
+          longitude: result.longitude,
+          admin1: result.admin1,
+          admin2: result.admin2,
+          country: result.country
+        }));
+        renderGeocodeResults();
+        setWeatherLoading(false, state.geocodeResults.length ? t('loadingResultsFound') : t('loadingNoResults'));
+      } catch (error) {
+        state.geocodeResults = [];
+        renderGeocodeResults();
+        setWeatherLoading(false, '');
+        setStatus('statusSearchFailed');
+      }
+    }
+
+    async function reverseGeocode(latitude, longitude) {
+      const url = new URL('https://geocoding-api.open-meteo.com/v1/search');
+      url.searchParams.set('name', `${latitude.toFixed(3)},${longitude.toFixed(3)}`);
+      url.searchParams.set('count', '1');
+      url.searchParams.set('language', state.language);
+      url.searchParams.set('country_code', 'IT');
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Reverse geocoding request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const result = data.results?.[0];
+      if (!result) {
+        return {
+          name: `Lat ${latitude.toFixed(3)}, Lon ${longitude.toFixed(3)}`,
+          latitude,
+          longitude,
+          admin1: '',
+          admin2: '',
+          country: 'Italia'
+        };
+      }
+
+      return {
+        name: result.name,
+        latitude: result.latitude,
+        longitude: result.longitude,
+        admin1: result.admin1,
+        admin2: result.admin2,
+        country: result.country
+      };
+    }
+
+    async function fetchWeatherForLocation(location) {
+      if (!location) {
+        state.selectedLocation = null;
+        state.lastWeather = null;
+        weatherMeta.textContent = t('weatherIdle');
+        renderExtendedWeather();
+        updateResultMeta();
+        update();
+        return;
+      }
+
+      setWeatherLoading(true, t('loadingWeather'));
+      try {
+        const url = new URL('https://api.open-meteo.com/v1/forecast');
+        url.searchParams.set('latitude', location.latitude);
+        url.searchParams.set('longitude', location.longitude);
+        url.searchParams.set('current', 'temperature_2m,surface_pressure,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code');
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Weather request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        const current = data.current;
+        if (!current || ![current.temperature_2m, current.surface_pressure].every(Number.isFinite)) {
+          throw new Error('Weather data is incomplete');
+        }
+
+        state.selectedLocation = location;
+        state.lastWeather = current;
+        citySearch.value = location.name;
+        setTemperatureDisplayFromCelsius(current.temperature_2m);
+        setPressureDisplayFromHpa(current.surface_pressure);
+        weatherMeta.textContent = `${location.name}${location.admin1 ? ` · ${location.admin1}` : ''} · ${t('weatherUpdated')} ${formatTimestamp(current.time)}`;
+        renderExtendedWeather();
+        setWeatherLoading(false, t('loadingWeatherLoaded'));
+        updateMapMarker(location.latitude, location.longitude, location.name);
+        update();
+      } catch (error) {
+        setWeatherLoading(false, '');
+        weatherMeta.textContent = `${location.name}: ${t('statusWeatherFailed')}`;
+        setStatus('statusWeatherFailed');
+      }
+    }
+
+    async function selectLocation(location) {
+      await fetchWeatherForLocation(location);
+    }
+
+    function syncMassVolumeSliderFromInput() {
+      const value = Number.parseFloat(massVolumeInput.value);
+      if (!Number.isFinite(value)) {
+        return;
+      }
+      massVolumeSlider.value = clamp(value, Number.parseFloat(massVolumeSlider.min), Number.parseFloat(massVolumeSlider.max));
+      updateSliderVisual(massVolumeSlider, ['#d9dde3', '#f0b36a', '#ff8a3d']);
+    }
+
+    function syncTemperatureSliderFromInput() {
+      const value = Number.parseFloat(temperatureInput.value);
+      if (!Number.isFinite(value)) {
+        return;
+      }
+      temperatureSlider.value = clamp(value, Number.parseFloat(temperatureSlider.min), Number.parseFloat(temperatureSlider.max));
+      updateSliderVisual(temperatureSlider, ['#ffd54a', '#ff9f1c', '#ff5a36']);
+    }
+
+    function syncPressureSliderFromInput() {
+      const value = Number.parseFloat(pressureInput.value);
+      if (!Number.isFinite(value)) {
+        return;
+      }
+      pressureSlider.value = clamp(value, Number.parseFloat(pressureSlider.min), Number.parseFloat(pressureSlider.max));
+      updateSliderVisual(pressureSlider, ['#4da3ff', '#2fd0c8', '#6fe38a']);
+    }
+
+    function switchTemperatureUnit(nextUnit) {
+      if (nextUnit === state.temperatureUnit) {
+        return;
+      }
+      const currentC = getCurrentTemperatureC();
+      state.temperatureUnit = nextUnit;
+      updateTemperatureSliderRange();
+      updateUnitToggleUI();
+      if (Number.isFinite(currentC)) {
+        setTemperatureDisplayFromCelsius(currentC);
+      }
+      update();
+    }
+
+    function switchPressureUnit(nextUnit) {
+      if (nextUnit === state.pressureUnit) {
+        return;
+      }
+      const currentHpa = getCurrentPressureHpa();
+      state.pressureUnit = nextUnit;
+      updatePressureSliderRange();
+      updateUnitToggleUI();
+      if (Number.isFinite(currentHpa)) {
+        setPressureDisplayFromHpa(currentHpa);
+      }
+      update();
+    }
+
+    function switchMode(nextMode) {
+      if (nextMode === state.mode) {
+        return;
+      }
+
+      const calculation = getCurrentCalculation();
+      state.mode = nextMode;
+      updateModeUI();
+
+      if (calculation) {
+        const nextInputValue = nextMode === 'kg-to-liters' ? Number(calculation.massKg) : Number(calculation.volumeLiters);
+        setMassVolumeDisplay(nextInputValue);
+      }
+
+      update();
+    }
+
+    function switchFuel(nextFuelKey) {
+      state.selectedFuelKey = nextFuelKey;
+      logFuelType.value = nextFuelKey;
+      updateFormulaBlock();
+      buildDensityTable();
+      update();
+    }
+
+    async function copyCurrentResult() {
+      if (!state.lastCalculation) {
+        setStatus('statusNoResultCopy');
+        return;
+      }
+
+      const text = [
+        `${t('fuel')}: ${state.lastCalculation.fuelName}`,
+        `${t('mode')}: ${state.lastCalculation.mode === 'kg-to-liters' ? t('modeKgToLiters') : t('modeLitersToKg')}`,
+        `${t('mass')}: ${state.lastCalculation.massKg} kg`,
+        `${t('volume')}: ${state.lastCalculation.volumeLiters} L`,
+        `${t('density')}: ${state.lastCalculation.density} kg/L`,
+        `${t('temperature')}: ${state.lastCalculation.temperatureC} °C`,
+        `${t('pressure')}: ${state.lastCalculation.pressureHpa} hPa`,
+        `${t('location')}: ${state.lastCalculation.city}`,
+        `${t('totalCostLabel')}: ${Number.isFinite(state.lastCalculation.totalCost) ? formatCurrency(state.lastCalculation.totalCost) : t('noData')}`
+      ].join('\n');
+
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('statusCopied');
+      } catch (error) {
+        setStatus('statusCopyFailed');
+      }
+    }
+
+    function downloadBlob(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadCurrentReport() {
+      if (!state.lastCalculation) {
+        setStatus('statusNoResultExport');
+        return;
+      }
+
+      const report = [
+        'Jet Fuel Converter Pro',
+        `${t('fuel')}: ${state.lastCalculation.fuelName}`,
+        `${t('mode')}: ${state.lastCalculation.mode === 'kg-to-liters' ? t('modeKgToLiters') : t('modeLitersToKg')}`,
+        `${t('mass')}: ${state.lastCalculation.massKg} kg`,
+        `${t('volume')}: ${state.lastCalculation.volumeLiters} L`,
+        `${t('usGallons')}: ${formatNumber(Number(state.lastCalculation.volumeLiters) * litersToUsGallons, 2)}`,
+        `${t('impGallons')}: ${formatNumber(Number(state.lastCalculation.volumeLiters) * litersToImpGallons, 2)}`,
+        `${t('density')}: ${state.lastCalculation.density} kg/L`,
+        `${t('temperature')}: ${state.lastCalculation.temperatureC} °C`,
+        `${t('pressure')}: ${state.lastCalculation.pressureHpa} hPa`,
+        `${t('location')}: ${state.lastCalculation.city}`,
+        `${t('totalCostLabel')}: ${Number.isFinite(state.lastCalculation.totalCost) ? formatCurrency(state.lastCalculation.totalCost) : t('noData')}`
+      ].join('\n');
+
+      downloadBlob(t('currentReportFileName'), report, 'text/plain;charset=utf-8');
+      setStatus('statusCurrentDownloaded');
+    }
+
+    function downloadHistoryReport() {
+      if (!state.history.length) {
+        setStatus('statusNoHistory');
+        return;
+      }
+
+      const rows = [
+        ['fuel', 'mode', 'city', 'mass_kg', 'volume_l', 'density_kg_l', 'temperature_c', 'pressure_hpa', 'timestamp']
+      ];
+
+      state.history.forEach((entry) => {
+        rows.push([
+          entry.fuelName,
+          entry.mode,
+          entry.city,
+          entry.massKg,
+          entry.volumeLiters,
+          entry.density,
+          entry.temperatureC,
+          entry.pressureHpa,
+          entry.timestamp
+        ]);
+      });
+
+      const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
+      downloadBlob(t('historyFileName'), csv, 'text/csv;charset=utf-8');
+      setStatus('statusCsvDownloaded');
+    }
+
+    function downloadPdfReport() {
+      if (!state.lastCalculation) {
+        setStatus('statusNoResultPdf');
+        return;
+      }
+
+      const jspdfNamespace = window.jspdf;
+      if (!jspdfNamespace || !jspdfNamespace.jsPDF) {
+        setStatus('statusPdfUnavailable');
+        return;
+      }
+
+      const { jsPDF } = jspdfNamespace;
+      const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 44;
+      let y = 52;
+
+      function addLine(text, size = 11, color = [40, 52, 70], gap = 18) {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(size);
+        pdf.setTextColor(...color);
+        const lines = pdf.splitTextToSize(text, pageWidth - margin * 2);
+        pdf.text(lines, margin, y);
+        y += lines.length * gap;
+      }
+
+      function addSection(title) {
+        y += 10;
+        pdf.setDrawColor(93, 183, 255);
+        pdf.setLineWidth(1);
+        pdf.line(margin, y, pageWidth - margin, y);
+        y += 18;
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(14);
+        pdf.setTextColor(16, 32, 51);
+        pdf.text(title, margin, y);
+        y += 18;
+      }
+
+      pdf.setFillColor(8, 17, 29);
+      pdf.rect(0, 0, pageWidth, 92, 'F');
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(22);
+      pdf.setTextColor(232, 241, 251);
+      pdf.text('Jet Fuel Converter Pro', margin, 42);
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(t('reportTitle'), margin, 62);
+      pdf.text(`${t('generatedAt')}: ${formatTimestamp(new Date().toISOString())}`, margin, 78);
+
+      y = 118;
+      addSection(t('scenarioSection'));
+      addLine(`${t('location')}: ${state.selectedLocation?.name || t('manual')}`);
+      addLine(`${t('fuel')}: ${state.lastCalculation.fuelName}`);
+      addLine(`${t('mode')}: ${state.lastCalculation.mode === 'kg-to-liters' ? t('modeKgToLiters') : t('modeLitersToKg')}`);
+
+      addSection(t('weatherSection'));
+      addLine(`${t('temperature')}: ${state.lastCalculation.temperatureC} °C`);
+      addLine(`${t('pressure')}: ${state.lastCalculation.pressureHpa} hPa`);
+      if (state.lastWeather) {
+        addLine(`${t('conditions')}: ${getWeatherLabel(state.lastWeather.weather_code)}`);
+        addLine(`${t('humidity')}: ${formatNumber(state.lastWeather.relative_humidity_2m, 0)} %`);
+        addLine(`${t('wind')}: ${formatNumber(state.lastWeather.wind_speed_10m, 1)} km/h`);
+        addLine(`${t('windDirection')}: ${formatNumber(state.lastWeather.wind_direction_10m, 0)}°`);
+        addLine(`${t('weatherPressureLabel')}: ${formatNumber(state.lastWeather.surface_pressure, 2)} hPa`);
+      }
+
+      addSection(t('inputResultsSection'));
+      addLine(`${t('primaryInput')}: ${state.lastCalculation.inputValue}`);
+      addLine(`${t('mass')}: ${state.lastCalculation.massKg} kg`);
+      addLine(`${t('volume')}: ${state.lastCalculation.volumeLiters} L`);
+      addLine(`${t('usGallons')}: ${formatNumber(Number(state.lastCalculation.volumeLiters) * litersToUsGallons, 2)}`);
+      addLine(`${t('impGallons')}: ${formatNumber(Number(state.lastCalculation.volumeLiters) * litersToImpGallons, 2)}`);
+      addLine(`${t('density')}: ${state.lastCalculation.density} kg/L`);
+
+      addSection(t('costSection'));
+      addLine(`${t('pricePerLiterLabel')}: ${pricePerLiterInput.value || t('noData')} ${currencySelect.value}/L`);
+      addLine(`${t('totalCostLabel')}: ${Number.isFinite(state.lastCalculation.totalCost) ? formatCurrency(state.lastCalculation.totalCost) : t('noData')}`);
+      addLine(`${t('pricePerKgLabel')}: ${Number.isFinite(state.lastCalculation.pricePerKg) ? formatCurrency(state.lastCalculation.pricePerKg) : t('noData')}`);
+
+      addSection(t('refsSection'));
+      references.forEach((reference) => {
+        addLine(`${reference.name} — ${reference.body}`, 11, [16, 32, 51], 16);
+        addLine(t(reference.descriptionKey), 10, [79, 100, 125], 14);
+        addLine(`${t('source')}: ${reference.link}`, 10, [31, 122, 224], 14);
+        y += 4;
+      });
+
+      pdf.save(t('reportFileName'));
+      setStatus('statusPdfDownloaded');
+    }
+
+    function clearHistory() {
+      state.history = [];
+      state.lastCalculationSignature = '';
+      saveHistory();
+      renderHistory();
+      setStatus('statusHistoryCleared');
+    }
+
+    function buildQrSummary() {
+      if (!state.lastCalculation) {
+        return '';
+      }
+      return [
+        `${t('fuel')}: ${state.lastCalculation.fuelName}`,
+        `${t('mass')}: ${state.lastCalculation.massKg} kg`,
+        `${t('volume')}: ${state.lastCalculation.volumeLiters} L`,
+        `${t('density')}: ${state.lastCalculation.density} kg/L`,
+        `${t('temperature')}: ${state.lastCalculation.temperatureC} °C`,
+        `${t('pressure')}: ${state.lastCalculation.pressureHpa} hPa`,
+        `${t('location')}: ${state.selectedLocation?.name || t('manual')}`,
+        `${t('totalCostLabel')}: ${Number.isFinite(state.lastCalculation.totalCost) ? formatCurrency(state.lastCalculation.totalCost) : t('noData')}`
+      ].join('\n');
+    }
+
+    function openQrModal() {
+      if (!state.lastCalculation) {
+        setStatus('statusQrUnavailable');
+        return;
+      }
+      qrCodeContainer.innerHTML = '';
+      new QRCode(qrCodeContainer, {
+        text: buildQrSummary(),
+        width: 220,
+        height: 220,
+        colorDark: '#08111d',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      qrModal.classList.add('visible');
+      qrModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeQrModal() {
+      qrModal.classList.remove('visible');
+      qrModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function downloadQrCode() {
+      const canvas = qrCodeContainer.querySelector('canvas');
+      const image = qrCodeContainer.querySelector('img');
+      let dataUrl = '';
+      if (canvas) {
+        dataUrl = canvas.toDataURL('image/png');
+      } else if (image) {
+        dataUrl = image.src;
+      }
+      if (!dataUrl) {
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = t('qrFileName');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setStatus('statusQrDownloaded');
+    }
+
+    function initializeMap() {
+      state.map = L.map('map').setView([42.5, 12.5], 6);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(state.map);
+
+      state.map.on('click', async (event) => {
+        setWeatherLoading(true, t('loadingMapLookup'));
+        try {
+          const location = await reverseGeocode(event.latlng.lat, event.latlng.lng);
+          await selectLocation(location);
+        } catch (error) {
+          setWeatherLoading(false, '');
+          setStatus('statusMapFailed');
+        }
+      });
+    }
+
+    function updateMapMarker(latitude, longitude, label) {
+      if (!state.map) {
+        return;
+      }
+      if (!state.marker) {
+        state.marker = L.marker([latitude, longitude]).addTo(state.map);
+      } else {
+        state.marker.setLatLng([latitude, longitude]);
+      }
+      state.marker.bindPopup(label).openPopup();
+      state.map.setView([latitude, longitude], 8);
+    }
+
+    function initializeChart() {
+      const context = document.getElementById('densityChart').getContext('2d');
+      state.chart = new Chart(context, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Density',
+              data: [],
+              borderColor: '#5db7ff',
+              backgroundColor: 'rgba(93, 183, 255, 0.18)',
+              tension: 0.25,
+              fill: true,
+              pointRadius: 0
+            },
+            {
+              label: 'Operating point',
+              data: [],
+              borderColor: '#ff9f1c',
+              backgroundColor: '#ff9f1c',
+              pointRadius: 6,
+              pointHoverRadius: 7,
+              showLine: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: getComputedStyle(root).getPropertyValue('--text').trim()
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: getComputedStyle(root).getPropertyValue('--muted').trim()
+              },
+              grid: {
+                color: 'rgba(127, 127, 127, 0.15)'
+              },
+              title: {
+                display: true,
+                text: 'Temperatura (°C)',
+                color: getComputedStyle(root).getPropertyValue('--muted').trim()
+              }
+            },
+            y: {
+              ticks: {
+                color: getComputedStyle(root).getPropertyValue('--muted').trim()
+              },
+              grid: {
+                color: 'rgba(127, 127, 127, 0.15)'
+              },
+              title: {
+                display: true,
+                text: 'Densità (kg/L)',
+                color: getComputedStyle(root).getPropertyValue('--muted').trim()
+              }
+            }
+          }
+        }
+      });
+      updateDensityChart();
+    }
+
+    function updateDensityChart() {
+      if (!state.chart) {
+        return;
+      }
+
+      const labels = [];
+      const densities = [];
+      for (let temperature = -40; temperature <= 60; temperature += 5) {
+        labels.push(temperature);
+        densities.push(computeDensity(temperature, referencePressure));
+      }
+
+      const currentTemperature = getCurrentTemperatureC();
+      const currentPressure = getCurrentPressureHpa();
+      const currentDensity = Number.isFinite(currentTemperature) && Number.isFinite(currentPressure)
+        ? computeDensity(currentTemperature, currentPressure)
+        : null;
+
+      state.chart.data.labels = labels;
+      state.chart.data.datasets[0].label = `${getFuel().name} · ${t('density')}`;
+      state.chart.data.datasets[0].data = densities;
+      state.chart.data.datasets[1].data = currentDensity === null ? [] : [{ x: currentTemperature, y: currentDensity }];
+
+      const textColor = getComputedStyle(root).getPropertyValue('--text').trim();
+      const mutedColor = getComputedStyle(root).getPropertyValue('--muted').trim();
+      state.chart.options.plugins.legend.labels.color = textColor;
+      state.chart.options.scales.x.ticks.color = mutedColor;
+      state.chart.options.scales.y.ticks.color = mutedColor;
+      state.chart.options.scales.x.title.color = mutedColor;
+      state.chart.options.scales.y.title.color = mutedColor;
+      state.chart.options.scales.x.title.text = state.language === 'en' ? 'Temperature (°C)' : 'Temperatura (°C)';
+      state.chart.options.scales.y.title.text = state.language === 'en' ? 'Density (kg/L)' : 'Densità (kg/L)';
+      state.chart.update();
+    }
+
+    function registerServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
+    }
+
+    function getTodayIsoDate() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function loadRefuelingLog() {
+      try {
+        const raw = localStorage.getItem(refuelingLogStorageKey);
+        state.refuelingLog = raw ? JSON.parse(raw) : [];
+      } catch (error) {
+        state.refuelingLog = [];
+      }
+    }
+
+    function saveRefuelingLog() {
+      localStorage.setItem(refuelingLogStorageKey, JSON.stringify(state.refuelingLog));
+    }
+
+    function resetLogForm() {
+      state.editingLogId = null;
+      logDate.value = getTodayIsoDate();
+      logLocation.value = state.selectedLocation?.name || '';
+      logRegistration.value = '';
+      logFuelType.value = state.selectedFuelKey;
+      logMassKg.value = '';
+      logVolumeLiters.value = '';
+      logTemperature.value = state.lastWeather ? formatNumber(state.lastWeather.temperature_2m, 1) : '';
+      logPressure.value = state.lastWeather ? formatNumber(state.lastWeather.surface_pressure, 2) : '';
+      logHumidity.value = state.lastWeather ? formatNumber(state.lastWeather.relative_humidity_2m, 0) : '';
+      logNotes.value = '';
+      setStatus('logReset');
+    }
+
+    function updateLogVolumeFromMass() {
+      const mass = Number.parseFloat(logMassKg.value);
+      const temperature = Number.parseFloat(logTemperature.value);
+      const pressure = Number.parseFloat(logPressure.value);
+      const fuelKey = logFuelType.value || state.selectedFuelKey;
+      if (![mass, temperature, pressure].every(Number.isFinite) || mass < 0) {
+        logVolumeLiters.value = '';
+        return;
+      }
+      const density = computeDensity(temperature, pressure, fuelKey);
+      if (!Number.isFinite(density) || density <= 0) {
+        logVolumeLiters.value = '';
+        return;
+      }
+      logVolumeLiters.value = formatNumber(mass / density, 2);
+    }
+
+    function getSortedLogEntries() {
+      const entries = [...state.refuelingLog];
+      entries.sort((left, right) => {
+        const direction = state.logSortDirection === 'asc' ? 1 : -1;
+        const leftValue = left[state.logSortKey];
+        const rightValue = right[state.logSortKey];
+        if (leftValue < rightValue) {
+          return -1 * direction;
+        }
+        if (leftValue > rightValue) {
+          return 1 * direction;
+        }
+        return 0;
+      });
+      return entries;
+    }
+
+    function renderLogStats() {
+      const totalEntries = state.refuelingLog.length;
+      const totalKg = state.refuelingLog.reduce((sum, entry) => sum + Number(entry.massKg || 0), 0);
+      const totalLiters = state.refuelingLog.reduce((sum, entry) => sum + Number(entry.volumeLiters || 0), 0);
+      const averageDensity = totalEntries
+        ? state.refuelingLog.reduce((sum, entry) => sum + Number(entry.density || 0), 0) / totalEntries
+        : 0;
+
+      logStatsEntriesValue.textContent = String(totalEntries);
+      logStatsKgValue.textContent = formatNumber(totalKg, 2);
+      logStatsLitersValue.textContent = formatNumber(totalLiters, 2);
+      logStatsDensityValue.textContent = formatNumber(averageDensity, 5);
+    }
+
+    function renderRefuelingLog() {
+      logTableBody.innerHTML = '';
+      const entries = getSortedLogEntries();
+      logEmptyState.style.display = entries.length ? 'none' : 'block';
+
+      entries.forEach((entry) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${entry.date}</td>
+          <td>${entry.location}</td>
+          <td>${entry.registration}</td>
+          <td>${entry.fuelName}</td>
+          <td>${entry.massKg}</td>
+          <td>${entry.volumeLiters}</td>
+          <td>${entry.density}</td>
+          <td>
+            <div class="table-actions">
+              <button class="action-button" type="button" data-log-edit="${entry.id}">${t('logEdit')}</button>
+              <button class="clear-button" type="button" data-log-delete="${entry.id}">${t('logDelete')}</button>
+            </div>
+          </td>
+        `;
+        logTableBody.appendChild(row);
+      });
+
+      renderLogStats();
+    }
+
+    function populateLogForm(entry) {
+      state.editingLogId = entry.id;
+      logDate.value = entry.date;
+      logLocation.value = entry.location;
+      logRegistration.value = entry.registration;
+      logFuelType.value = entry.fuelKey;
+      logMassKg.value = entry.massKg;
+      logVolumeLiters.value = entry.volumeLiters;
+      logTemperature.value = entry.temperature;
+      logPressure.value = entry.pressure;
+      logHumidity.value = entry.humidity;
+      logNotes.value = entry.notes;
+    }
+
+    function saveLogEntry() {
+      const date = logDate.value;
+      const location = logLocation.value.trim();
+      const registration = logRegistration.value.trim();
+      const fuelKey = logFuelType.value;
+      const massKg = Number.parseFloat(logMassKg.value);
+      const volumeLiters = Number.parseFloat(logVolumeLiters.value);
+      const temperature = Number.parseFloat(logTemperature.value);
+      const pressure = Number.parseFloat(logPressure.value);
+      const humidity = Number.parseFloat(logHumidity.value);
+      const notes = logNotes.value.trim();
+
+      if (!date || !location || !registration || !Number.isFinite(massKg)) {
+        setStatus('logMissing');
+        return;
+      }
+
+      const density = Number.isFinite(volumeLiters) && volumeLiters > 0 ? massKg / volumeLiters : computeDensity(temperature, pressure, fuelKey);
+      const entry = {
+        id: state.editingLogId || `log-${Date.now()}`,
+        date,
+        location,
+        registration,
+        fuelKey,
+        fuelName: fuelTypes[fuelKey].name,
+        massKg: formatNumber(massKg, 2),
+        volumeLiters: Number.isFinite(volumeLiters) ? formatNumber(volumeLiters, 2) : '',
+        density: Number.isFinite(density) ? formatNumber(density, 5) : '',
+        temperature: Number.isFinite(temperature) ? formatNumber(temperature, 2) : '',
+        pressure: Number.isFinite(pressure) ? formatNumber(pressure, 2) : '',
+        humidity: Number.isFinite(humidity) ? formatNumber(humidity, 0) : '',
+        notes
+      };
+
+      const existingIndex = state.refuelingLog.findIndex((item) => item.id === entry.id);
+      if (existingIndex >= 0) {
+        state.refuelingLog.splice(existingIndex, 1, entry);
+      } else {
+        state.refuelingLog.unshift(entry);
+      }
+
+      saveRefuelingLog();
+      renderRefuelingLog();
+      setStatus('logSaved');
+      resetLogForm();
+    }
+
+    function deleteLogEntry(entryId) {
+      state.refuelingLog = state.refuelingLog.filter((entry) => entry.id !== entryId);
+      saveRefuelingLog();
+      renderRefuelingLog();
+      setStatus('logDeleted');
+    }
+
+    function autofillLogWeather() {
+      if (!state.lastWeather) {
+        return;
+      }
+      logTemperature.value = formatNumber(state.lastWeather.temperature_2m, 1);
+      logPressure.value = formatNumber(state.lastWeather.surface_pressure, 2);
+      logHumidity.value = formatNumber(state.lastWeather.relative_humidity_2m, 0);
+      if (state.selectedLocation?.name) {
+        logLocation.value = state.selectedLocation.name;
+      }
+      updateLogVolumeFromMass();
+      setStatus('logWeatherFilled');
+    }
+
+    function autofillLogFromCalculator() {
+      if (!state.lastCalculation) {
+        return;
+      }
+      logFuelType.value = state.selectedFuelKey;
+      logMassKg.value = state.lastCalculation.massKg;
+      logVolumeLiters.value = state.lastCalculation.volumeLiters;
+      logTemperature.value = state.lastCalculation.temperatureC;
+      logPressure.value = state.lastCalculation.pressureHpa;
+      if (state.lastWeather) {
+        logHumidity.value = formatNumber(state.lastWeather.relative_humidity_2m, 0);
+      }
+      if (state.selectedLocation?.name) {
+        logLocation.value = state.selectedLocation.name;
+      }
+      setStatus('logCalcFilled');
+    }
+
+    function exportRefuelingLogCsv() {
+      if (!state.refuelingLog.length) {
+        setStatus('logNoEntries');
+        return;
+      }
+      const rows = [
+        ['date', 'location', 'registration', 'fuel', 'mass_kg', 'volume_l', 'density', 'temperature_c', 'pressure_hpa', 'humidity_pct', 'notes']
+      ];
+      getSortedLogEntries().forEach((entry) => {
+        rows.push([
+          entry.date,
+          entry.location,
+          entry.registration,
+          entry.fuelName,
+          entry.massKg,
+          entry.volumeLiters,
+          entry.density,
+          entry.temperature,
+          entry.pressure,
+          entry.humidity,
+          entry.notes
+        ]);
+      });
+      const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
+      downloadBlob(`refueling-log-${state.language}.csv`, csv, 'text/csv;charset=utf-8');
+      setStatus('logCsvDownloaded');
+    }
+
+    function exportRefuelingLogPdf() {
+      if (!state.refuelingLog.length) {
+        setStatus('logNoEntries');
+        return;
+      }
+      const jspdfNamespace = window.jspdf;
+      if (!jspdfNamespace || !jspdfNamespace.jsPDF) {
+        setStatus('statusPdfUnavailable');
+        return;
+      }
+      const { jsPDF } = jspdfNamespace;
+      const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 40;
+      let y = 48;
+
+      function ensureSpace(extra = 24) {
+        if (y + extra > pageHeight - margin) {
+          pdf.addPage();
+          y = 48;
+        }
+      }
+
+      pdf.setFillColor(8, 17, 29);
+      pdf.rect(0, 0, pageWidth, 86, 'F');
+      pdf.setTextColor(232, 241, 251);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(20);
+      pdf.text(t('logPdfTitle'), margin, 38);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(11);
+      pdf.text(`${t('generatedAt')}: ${formatTimestamp(new Date().toISOString())}`, margin, 60);
+      y = 110;
+
+      pdf.setTextColor(16, 32, 51);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(14);
+      pdf.text(t('logSummaryTitle'), margin, y);
+      y += 20;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(11);
+      pdf.text(`${t('logStatsEntriesLabel')}: ${logStatsEntriesValue.textContent}`, margin, y);
+      y += 16;
+      pdf.text(`${t('logStatsKgLabel')}: ${logStatsKgValue.textContent}`, margin, y);
+      y += 16;
+      pdf.text(`${t('logStatsLitersLabel')}: ${logStatsLitersValue.textContent}`, margin, y);
+      y += 16;
+      pdf.text(`${t('logStatsDensityLabel')}: ${logStatsDensityValue.textContent}`, margin, y);
+      y += 24;
+
+      getSortedLogEntries().forEach((entry) => {
+        ensureSpace(90);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`${entry.date} · ${entry.registration} · ${entry.location}`, margin, y);
+        y += 16;
+        pdf.setFont('helvetica', 'normal');
+        const lines = [
+          `${t('fuel')}: ${entry.fuelName}`,
+          `${t('mass')}: ${entry.massKg} kg · ${t('volume')}: ${entry.volumeLiters} L · ${t('density')}: ${entry.density} kg/L`,
+          `${t('temperature')}: ${entry.temperature} °C · ${t('pressure')}: ${entry.pressure} hPa · ${t('humidity')}: ${entry.humidity}%`,
+          `${t('logNotes')}: ${entry.notes || t('noData')}`
+        ];
+        lines.forEach((line) => {
+          ensureSpace(18);
+          pdf.text(pdf.splitTextToSize(line, pageWidth - margin * 2), margin, y);
+          y += 16;
+        });
+        y += 10;
+      });
+
+      pdf.save(`refueling-log-${state.language}.pdf`);
+      setStatus('logPdfDownloaded');
+    }
+
+    function attachLogTableHandlers() {
+      logTableBody.addEventListener('click', (event) => {
+        const editId = event.target.getAttribute('data-log-edit');
+        const deleteId = event.target.getAttribute('data-log-delete');
+        if (editId) {
+          const entry = state.refuelingLog.find((item) => item.id === editId);
+          if (entry) {
+            populateLogForm(entry);
+          }
+        }
+        if (deleteId) {
+          deleteLogEntry(deleteId);
+        }
+      });
+    }
+
+    function attachLogSortHandlers() {
+      document.querySelectorAll('[data-sort]').forEach((header) => {
+        header.addEventListener('click', () => {
+          const sortKey = header.getAttribute('data-sort');
+          if (state.logSortKey === sortKey) {
+            state.logSortDirection = state.logSortDirection === 'asc' ? 'desc' : 'asc';
+          } else {
+            state.logSortKey = sortKey;
+            state.logSortDirection = sortKey === 'date' ? 'desc' : 'asc';
+          }
+          renderRefuelingLog();
+        });
+      });
+    }
+
+    function renderTranslations() {
+      document.title = 'Jet Fuel Converter Pro';
+      document.documentElement.lang = state.language === 'en' ? 'en' : 'it';
+      eyebrowText.textContent = 'Jet Fuel Converter Pro';
+      heroTitle.textContent = t('heroTitle');
+      heroLead.textContent = t('appLead');
+      cockpitModeButton.textContent = t('cockpitMode');
+      themeLightButton.textContent = t('themeLight');
+      themeDarkButton.textContent = t('themeDark');
+      themeSystemButton.textContent = t('themeSystem');
+      document.getElementById('modeFuelTitle').textContent = t('modeFuelTitle');
+      document.getElementById('modeFuelSubtitle').textContent = t('modeFuelSubtitle');
+      document.getElementById('fuelTypeLabel').textContent = t('fuelType');
+      document.getElementById('conversionModeLabel').textContent = t('conversionMode');
+      document.getElementById('citySectionTitle').textContent = t('citySectionTitle');
+      document.getElementById('citySectionSubtitle').textContent = t('citySectionSubtitle');
+      document.getElementById('citySearchLabel').textContent = t('citySearch');
+      citySearch.placeholder = t('citySearchPlaceholder');
+      if (!state.selectedLocation) {
+        weatherMeta.textContent = t('weatherIdle');
+      }
+      document.getElementById('mapSectionTitle').textContent = t('mapSectionTitle');
+      document.getElementById('mapSectionSubtitle').textContent = t('mapSectionSubtitle');
+      document.getElementById('unitsSectionTitle').textContent = t('unitsSectionTitle');
+      document.getElementById('unitsSectionSubtitle').textContent = t('unitsSectionSubtitle');
+      document.getElementById('temperaturePill').textContent = t('temperature');
+      document.getElementById('pressurePill').textContent = t('pressure');
+      document.getElementById('costSectionTitle').textContent = t('costSectionTitle');
+      document.getElementById('costSectionSubtitle').textContent = t('costSectionSubtitle');
+      document.getElementById('currencyLabel').textContent = t('currency');
+      document.getElementById('pricePerLiterLabel').textContent = t('pricePerLiter');
+      totalCostLabel.textContent = t('totalCost');
+      pricePerKgLabel.textContent = t('pricePerKg');
+      document.getElementById('resultSectionTitle').textContent = t('resultSectionTitle');
+      document.getElementById('resultSectionSubtitle').textContent = t('resultSectionSubtitle');
+      densityResultLabel.textContent = t('computedDensity');
+      copyResultButton.textContent = t('copyResult');
+      downloadCurrentButton.textContent = t('downloadCurrent');
+      downloadHistoryButton.textContent = t('downloadCsv');
+      downloadPdfButton.textContent = t('downloadPdf');
+      generateQrButton.textContent = t('generateQr');
+      document.getElementById('historySectionTitle').textContent = t('historySectionTitle');
+      document.getElementById('historySectionSubtitle').textContent = t('historySectionSubtitle');
+      clearHistoryButton.textContent = t('clearHistory');
+      historyEmpty.textContent = t('emptyHistory');
+      document.getElementById('howItWorksTitle').textContent = t('howItWorksTitle');
+      document.getElementById('howItWorksText').textContent = t('howItWorksText');
+      document.getElementById('chartSectionTitle').textContent = t('chartSectionTitle');
+      document.getElementById('chartSectionSubtitle').textContent = t('chartSectionSubtitle');
+      document.getElementById('densityTableSummary').textContent = t('densityTableSummary');
+      document.getElementById('densityTableTempHeader').textContent = t('densityTableTempHeader');
+      document.getElementById('densityTableDensityHeader').textContent = t('densityTableDensityHeader');
+      document.getElementById('referencesSummary').textContent = t('referencesSummary');
+      document.getElementById('metaTempTitle').textContent = t('metaTempTitle');
+      document.getElementById('metaTempText').textContent = t('metaTempText');
+      document.getElementById('metaPressureTitle').textContent = t('metaPressureTitle');
+      document.getElementById('metaPressureText').textContent = t('metaPressureText');
+      document.getElementById('metaOfflineTitle').textContent = t('metaOfflineTitle');
+      document.getElementById('metaOfflineText').textContent = t('metaOfflineText');
+      document.getElementById('metaNoteTitle').textContent = t('metaNoteTitle');
+      document.getElementById('metaNoteText').textContent = t('metaNoteText');
+      document.getElementById('logSectionTitle').textContent = t('logSectionTitle');
+      document.getElementById('logSectionSubtitle').textContent = t('logSectionSubtitle');
+      document.getElementById('logStatsEntriesLabel').textContent = t('logStatsEntriesLabel');
+      document.getElementById('logStatsKgLabel').textContent = t('logStatsKgLabel');
+      document.getElementById('logStatsLitersLabel').textContent = t('logStatsLitersLabel');
+      document.getElementById('logStatsDensityLabel').textContent = t('logStatsDensityLabel');
+      document.getElementById('logDateLabel').textContent = t('logDateLabel');
+      document.getElementById('logLocationLabel').textContent = t('logLocationLabel');
+      document.getElementById('logRegistrationLabel').textContent = t('logRegistrationLabel');
+      document.getElementById('logFuelTypeLabel').textContent = t('logFuelTypeLabel');
+      document.getElementById('logMassKgLabel').textContent = t('logMassKgLabel');
+      document.getElementById('logVolumeLitersLabel').textContent = t('logVolumeLitersLabel');
+      document.getElementById('logTemperatureLabel').textContent = t('logTemperatureLabel');
+      document.getElementById('logPressureLabel').textContent = t('logPressureLabel');
+      document.getElementById('logHumidityLabel').textContent = t('logHumidityLabel');
+      document.getElementById('logNotesLabel').textContent = t('logNotesLabel');
+      logAutofillWeatherButton.textContent = t('logAutofillWeatherButton');
+      logAutofillCalcButton.textContent = t('logAutofillCalcButton');
+      logSaveButton.textContent = t('logSaveButton');
+      logResetButton.textContent = t('logResetButton');
+      logExportCsvButton.textContent = t('logExportCsvButton');
+      logExportPdfButton.textContent = t('logExportPdfButton');
+      document.getElementById('logHeaderDate').textContent = t('logHeaderDate');
+      document.getElementById('logHeaderLocation').textContent = t('logHeaderLocation');
+      document.getElementById('logHeaderRegistration').textContent = t('logHeaderRegistration');
+      document.getElementById('logHeaderFuel').textContent = t('logHeaderFuel');
+      document.getElementById('logHeaderKg').textContent = t('logHeaderKg');
+      document.getElementById('logHeaderLiters').textContent = t('logHeaderLiters');
+      document.getElementById('logHeaderDensity').textContent = t('logHeaderDensity');
+      document.getElementById('logHeaderActions').textContent = t('logHeaderActions');
+      logEmptyState.textContent = t('logEmptyState');
+      qrModalTitle.textContent = t('qrTitle');
+      qrModalSubtitle.textContent = t('qrSubtitle');
+      downloadQrButton.textContent = t('qrDownload');
+      cockpitPrimaryLabel.textContent = primaryResultLabel.textContent;
+      cockpitDensityLabel.textContent = t('density');
+      cockpitFuelLabel.textContent = t('fuel');
+      cockpitWeatherLabel.textContent = t('weatherCondition');
+      document.getElementById('cockpitDashboardTitle').textContent = t('cockpitDashboardTitle');
+      document.getElementById('cockpitDashboardSubtitle').textContent = t('cockpitDashboardSubtitle');
+      updateModeUI();
+      updateUnitToggleUI();
+      updateFormulaBlock();
+      renderReferences();
+      renderHistory();
+      renderExtendedWeather();
+      renderRefuelingLog();
+      updateResultMeta();
+      renderCockpitSuggestion();
+    }
+
+    function applyLanguage(language) {
+      state.language = language;
+      localStorage.setItem(languageStorageKey, language);
+      updateLanguageButtons();
+      renderTranslations();
+      update();
+    }
+
+    function handleKeyboardShortcuts(event) {
+      if (!(event.metaKey || event.ctrlKey)) {
+        return;
+      }
+      const key = event.key.toLowerCase();
+      if (key === 'e') {
+        event.preventDefault();
+        setStatus('Shortcut: Cmd+E / Ctrl+E');
+        downloadPdfReport();
+      }
+      if (key === 'q') {
+        event.preventDefault();
+        setStatus('Shortcut: Cmd+Q / Ctrl+Q');
+        openQrModal();
+      }
+    }
+
+    massVolumeInput.addEventListener('input', () => {
+      syncMassVolumeSliderFromInput();
+      update();
+    });
+
+    massVolumeSlider.addEventListener('input', () => {
+      massVolumeInput.value = massVolumeSlider.value;
+      updateSliderVisual(massVolumeSlider, ['#d9dde3', '#f0b36a', '#ff8a3d']);
+      update();
+    });
+
+    temperatureInput.addEventListener('input', () => {
+      syncTemperatureSliderFromInput();
+      update();
+    });
+
+    temperatureSlider.addEventListener('input', () => {
+      temperatureInput.value = temperatureSlider.value;
+      updateSliderVisual(temperatureSlider, ['#ffd54a', '#ff9f1c', '#ff5a36']);
+      update();
+    });
+
+    pressureInput.addEventListener('input', () => {
+      syncPressureSliderFromInput();
+      update();
+    });
+
+    pressureSlider.addEventListener('input', () => {
+      pressureInput.value = pressureSlider.value;
+      updateSliderVisual(pressureSlider, ['#4da3ff', '#2fd0c8', '#6fe38a']);
+      update();
+    });
+
+    citySearch.addEventListener('input', () => {
+      clearTimeout(state.geocodeDebounceId);
+      state.geocodeDebounceId = setTimeout(() => {
+        searchCities(citySearch.value);
+      }, geocodeDebounceMs);
+    });
+
+    citySearch.addEventListener('focus', () => {
+      if (state.geocodeResults.length) {
+        cityResults.classList.add('visible');
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!cityResults.contains(event.target) && event.target !== citySearch) {
+        cityResults.classList.remove('visible');
+      }
+    });
+
+    modeKgToLiters.addEventListener('click', () => switchMode('kg-to-liters'));
+    modeLitersToKg.addEventListener('click', () => switchMode('liters-to-kg'));
+
+    temperatureUnitToggle.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-temp-unit]');
+      if (!button) {
+        return;
+      }
+      switchTemperatureUnit(button.dataset.tempUnit);
+    });
+
+    pressureUnitToggle.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-pressure-unit]');
+      if (!button) {
+        return;
+      }
+      switchPressureUnit(button.dataset.pressureUnit);
+    });
+
+    fuelTypeSelect.addEventListener('change', () => {
+      switchFuel(fuelTypeSelect.value);
+    });
+
+    currencySelect.addEventListener('change', update);
+    pricePerLiterInput.addEventListener('input', update);
+
+    copyResultButton.addEventListener('click', copyCurrentResult);
+    downloadCurrentButton.addEventListener('click', downloadCurrentReport);
+    downloadHistoryButton.addEventListener('click', downloadHistoryReport);
+    downloadPdfButton.addEventListener('click', downloadPdfReport);
+    generateQrButton.addEventListener('click', openQrModal);
+    clearHistoryButton.addEventListener('click', clearHistory);
+    closeQrModalButton.addEventListener('click', closeQrModal);
+    downloadQrButton.addEventListener('click', downloadQrCode);
+    qrModal.addEventListener('click', (event) => {
+      if (event.target === qrModal) {
+        closeQrModal();
+      }
+    });
+
+    themeLightButton.addEventListener('click', () => applyTheme('light'));
+    themeDarkButton.addEventListener('click', () => applyTheme('dark'));
+    themeSystemButton.addEventListener('click', () => applyTheme('system'));
+    cockpitModeButton.addEventListener('click', () => applyCockpitMode(!state.cockpitMode));
+    languageItButton.addEventListener('click', () => applyLanguage('it'));
+    languageEnButton.addEventListener('click', () => applyLanguage('en'));
+    hamburgerToggleButton.addEventListener('click', toggleCompactMenus);
+    mobileExportButton.addEventListener('click', downloadPdfReport);
+    mobileQrButton.addEventListener('click', openQrModal);
+    mobileMenuButton.addEventListener('click', toggleCompactMenus);
+
+    logMassKg.addEventListener('input', updateLogVolumeFromMass);
+    logTemperature.addEventListener('input', updateLogVolumeFromMass);
+    logPressure.addEventListener('input', updateLogVolumeFromMass);
+    logFuelType.addEventListener('change', updateLogVolumeFromMass);
+    logAutofillWeatherButton.addEventListener('click', autofillLogWeather);
+    logAutofillCalcButton.addEventListener('click', autofillLogFromCalculator);
+    logSaveButton.addEventListener('click', saveLogEntry);
+    logResetButton.addEventListener('click', resetLogForm);
+    logExportCsvButton.addEventListener('click', exportRefuelingLogCsv);
+    logExportPdfButton.addEventListener('click', exportRefuelingLogPdf);
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (state.themePreference === 'system') {
+        applyTheme('system');
+      }
+    });
+
+    window.addEventListener('resize', renderCockpitSuggestion, { passive: true });
+    window.addEventListener('keydown', handleKeyboardShortcuts);
+
+    function initialize() {
+      loadHistory();
+      loadRefuelingLog();
+      renderQuickCities();
+      buildDensityTable();
+      updateModeUI();
+      updateTemperatureSliderRange();
+      updatePressureSliderRange();
+      updateUnitToggleUI();
+      updateFormulaBlock();
+      setMassVolumeDisplay(1000);
+      setTemperatureDisplayFromCelsius(15);
+      setPressureDisplayFromHpa(1013.25);
+      updateSliderVisual(massVolumeSlider, ['#d9dde3', '#f0b36a', '#ff8a3d']);
+      updateSliderVisual(temperatureSlider, ['#ffd54a', '#ff9f1c', '#ff5a36']);
+      updateSliderVisual(pressureSlider, ['#4da3ff', '#2fd0c8', '#6fe38a']);
+      initializeMap();
+      initializeChart();
+      applyTheme(localStorage.getItem(themeStorageKey) || 'dark');
+      state.language = localStorage.getItem(languageStorageKey) || 'it';
+      state.cockpitMode = localStorage.getItem(cockpitStorageKey) === 'true';
+      updateLanguageButtons();
+      updateCockpitButton();
+      renderTranslations();
+      attachLogTableHandlers();
+      attachLogSortHandlers();
+      logDate.value = getTodayIsoDate();
+      logFuelType.value = state.selectedFuelKey;
+      resetLogForm();
+      registerServiceWorker();
+      update();
+    }
+
+    initialize();
+  </script>
+</body>
+</html>

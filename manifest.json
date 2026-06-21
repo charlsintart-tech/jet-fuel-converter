@@ -1,0 +1,11 @@
+{
+  "name": "Jet Fuel Converter Pro",
+  "short_name": "JetFuel",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#08111d",
+  "theme_color": "#08111d",
+  "lang": "it",
+  "description": "Convertitore carburanti avio con meteo live, mappa e supporto offline.",
+  "icons": []
+}
