@@ -982,9 +982,9 @@
               <div class="grid-3">
                 <div class="field">
                   <label for="massInput" id="massLabel"></label>
-                  <input id="massInput" type="number" min="0" max="50000" step="1">
+                  <input id="massInput" type="number" min="0" max="10000" step="1">
                   <div class="slider-wrap">
-                    <input id="massSlider" class="slider" type="range" min="0" max="50000" step="1">
+                    <input id="massSlider" class="slider" type="range" min="0" max="10000" step="1">
                   </div>
                 </div>
                 <div class="field">
@@ -1006,6 +1006,11 @@
 
             <div class="results-grid">
               <div class="result-card">
+                <strong data-i18n="resultDensity"></strong>
+                <div class="result-value" id="densityResult"></div>
+                <small id="densityMeta"></small>
+              </div>
+              <div class="result-card">
                 <strong data-i18n="resultPrimary"></strong>
                 <div class="result-value" id="primaryResult"></div>
                 <small id="primaryResultMeta"></small>
@@ -1024,11 +1029,6 @@
                 <strong data-i18n="resultImpGallons"></strong>
                 <div class="result-value" id="impGallonsResult"></div>
                 <small id="impGallonsMeta"></small>
-              </div>
-              <div class="result-card">
-                <strong data-i18n="resultDensity"></strong>
-                <div class="result-value" id="densityResult"></div>
-                <small id="densityMeta"></small>
               </div>
               <div class="result-card">
                 <strong data-i18n="resultWeatherLink"></strong>
@@ -2129,7 +2129,7 @@
       if (fromSlider) {
         els.massInput.value = els.massSlider.value;
       } else {
-        els.massSlider.value = Math.min(50000, Math.max(0, Number(els.massInput.value || 0)));
+        els.massSlider.value = Math.min(10000, Math.max(0, Number(els.massInput.value || 0)));
       }
       updateSliderVisual(els.massSlider, ['#ffd54a', '#ffd54a', '#ffd54a']);
       updateConversion();
@@ -2317,11 +2317,12 @@
     }
 
     function exportLogPdf() {
-      if (!state.logEntries.length) {
+      const entries = getSortedLogEntries();
+      if (!entries.length) {
         els.logStatus.textContent = t('noLogExport');
         return;
       }
-      exportPdf('Jet Fuel Refueling Log', state.logEntries.map((entry) =>
+      exportPdf('Jet Fuel Refueling Log', entries.map((entry) =>
         `${entry.date} | ${entry.location} | ${entry.registration} | ${entry.fuelType} | ${formatNumber(entry.massKg, 2)} kg | ${formatNumber(entry.volumeLiters, 2)} L | ${formatNumber(entry.density, 4)} kg/L`
       ), `${t('exportFilenameLog')}.pdf`, els.logStatus);
     }
@@ -2396,6 +2397,9 @@
         els.logStatus.textContent = t('logSubtitle');
         return;
       }
+      if (!entry.volumeLiters) {
+        entry.volumeLiters = Number(formatPlain(entry.massKg / entry.density, 1));
+      }
       if (state.editingLogId) {
         state.logEntries = state.logEntries.map((item) => item.id === state.editingLogId ? { ...item, ...entry } : item);
         els.logStatus.textContent = t('logUpdated');
@@ -2403,10 +2407,10 @@
         state.logEntries = [entry, ...state.logEntries];
         els.logStatus.textContent = t('logSaved');
       }
-      state.editingLogId = null;
       saveJson(storageKeys.log, state.logEntries);
-      resetLogForm(false);
       renderLog();
+      state.editingLogId = null;
+      resetLogForm(false);
     }
 
     function resetLogForm(showStatus = true) {
