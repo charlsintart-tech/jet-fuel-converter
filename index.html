@@ -480,6 +480,7 @@
       height: 0.875rem;
       border-radius: 999px;
       background: var(--track, rgba(255, 255, 255, 0.08));
+      border: 1px solid color-mix(in srgb, var(--accent-strong) 18%, transparent);
     }
 
     .slider::-webkit-slider-thumb {
@@ -498,6 +499,7 @@
       height: 0.875rem;
       border-radius: 999px;
       background: var(--track, rgba(255, 255, 255, 0.08));
+      border: 1px solid color-mix(in srgb, var(--accent-strong) 18%, transparent);
     }
 
     .slider::-moz-range-thumb {
@@ -1042,6 +1044,11 @@
             </div>
 
             <div class="results-grid">
+              <div class="result-card">
+                <strong data-i18n="resultWeatherLink"></strong>
+                <div class="result-value" id="weatherLinkedResult"></div>
+                <small id="weatherLinkedMeta"></small>
+              </div>
               <div class="result-card">
                 <strong data-i18n="resultDensity"></strong>
                 <div class="result-value" id="densityResult"></div>
@@ -2149,8 +2156,8 @@
       els.impGallonsMeta.textContent = `${formatNumber(liters, 2)} L`;
       els.densityResult.textContent = `${formatNumber(density, 4)} kg/L`;
       els.densityMeta.textContent = `${formatNumber(tempC, 1)} °C · ${formatNumber(pressureHpa, 1)} hPa`;
-      els.weatherLinkedResult.textContent = state.weather ? `${formatNumber(state.weather.temperature, 1)} °C` : t('weatherLinkedNo');
-      els.weatherLinkedMeta.textContent = state.weather ? `${toDms(state.weather.lat, state.weather.lon)} · ${state.weather.city}` : t('noWeatherData');
+      els.weatherLinkedResult.textContent = state.weather ? `${formatNumber(state.weather.temperature, 1)} °C · ${formatNumber(state.weather.pressure, 1)} hPa` : t('weatherLinkedNo');
+      els.weatherLinkedMeta.textContent = state.weather ? `${state.weather.city} · ${toDms(state.weather.lat, state.weather.lon)}` : t('noWeatherData');
 
       const entry = {
         id: Date.now(),
