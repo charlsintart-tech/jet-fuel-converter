@@ -428,6 +428,18 @@
       color: #1f2937 !important;
     }
 
+    #coordsToggleButton.coords-on {
+      background: #22c55e !important;
+      border-color: #22c55e !important;
+      color: #ffffff !important;
+    }
+
+    #coordsToggleButton.coords-off {
+      background: #eab308 !important;
+      border-color: #eab308 !important;
+      color: #1f2937 !important;
+    }
+
     .action-button {
       background: linear-gradient(180deg, rgba(93, 183, 255, 0.24), rgba(93, 183, 255, 0.14));
       border: 1px solid rgba(93, 183, 255, 0.38);
@@ -1007,9 +1019,9 @@
               <div class="grid-3">
                 <div class="field">
                   <label for="massInput" id="massLabel"></label>
-                  <input id="massInput" type="number" min="0" max="3000" step="1">
+                  <input id="massInput" type="number" min="0" max="2000" step="1">
                   <div class="slider-wrap">
-                    <input id="massSlider" class="slider" type="range" min="0" max="3000" step="1">
+                    <input id="massSlider" class="slider" type="range" min="0" max="2000" step="1">
                   </div>
                 </div>
                 <div class="field">
@@ -1054,11 +1066,6 @@
                 <strong data-i18n="resultImpGallons"></strong>
                 <div class="result-value" id="impGallonsResult"></div>
                 <small id="impGallonsMeta"></small>
-              </div>
-              <div class="result-card">
-                <strong data-i18n="resultWeatherLink"></strong>
-                <div class="result-value" id="weatherLinkedResult"></div>
-                <small id="weatherLinkedMeta"></small>
               </div>
             </div>
             <div class="status-line" id="conversionStatus"></div>
@@ -1345,7 +1352,7 @@
         resultUsGallons: 'Galloni US',
         resultImpGallons: 'Galloni Imperial',
         resultDensity: 'Densità calcolata',
-        resultWeatherLink: 'Meteo collegato',
+        resultWeatherLink: 'Meteo',
         generateQr: 'Genera QR',
         save: 'Salva',
         shareWhatsapp: '📱 Invia su WhatsApp',
@@ -1495,7 +1502,7 @@
         resultUsGallons: 'US gallons',
         resultImpGallons: 'Imperial gallons',
         resultDensity: 'Computed density',
-        resultWeatherLink: 'Weather link',
+        resultWeatherLink: 'Weather',
         generateQr: 'Generate QR',
         save: 'Save',
         shareWhatsapp: '📱 Share on WhatsApp',
@@ -1864,6 +1871,12 @@
       els.geoToggle.classList.toggle('geo-off', !state.geolocationEnabled);
     }
 
+    function updateCoordsToggleAppearance() {
+      const active = !els.coordsPanel.classList.contains('hidden');
+      els.coordsToggleButton.classList.toggle('coords-on', active);
+      els.coordsToggleButton.classList.toggle('coords-off', !active);
+    }
+
     function renderTranslations() {
       document.title = 'Jet Fuel Converter';
       document.querySelectorAll('[data-i18n]').forEach((node) => {
@@ -1873,6 +1886,7 @@
       els.topbarBadge.textContent = t('appBadge');
       els.citySearch.placeholder = t('citySearchPlaceholder');
       updateGeoToggleAppearance();
+      updateCoordsToggleAppearance();
       els.howItWorksText.textContent = t('howItWorksText');
       updateMassLabel();
     }
@@ -2135,8 +2149,8 @@
       els.impGallonsMeta.textContent = `${formatNumber(liters, 2)} L`;
       els.densityResult.textContent = `${formatNumber(density, 4)} kg/L`;
       els.densityMeta.textContent = `${formatNumber(tempC, 1)} °C · ${formatNumber(pressureHpa, 1)} hPa`;
-      els.weatherLinkedResult.textContent = state.weather ? t('weatherLinkedYes') : t('weatherLinkedNo');
-      els.weatherLinkedMeta.textContent = state.weather ? `${state.weather.city} · ${formatNumber(state.weather.temperature, 1)} °C` : t('noWeatherData');
+      els.weatherLinkedResult.textContent = state.weather ? `${formatNumber(state.weather.temperature, 1)} °C` : t('weatherLinkedNo');
+      els.weatherLinkedMeta.textContent = state.weather ? `${toDms(state.weather.lat, state.weather.lon)} · ${state.weather.city}` : t('noWeatherData');
 
       const entry = {
         id: Date.now(),
@@ -2183,7 +2197,7 @@
       if (fromSlider) {
         els.massInput.value = els.massSlider.value;
       } else {
-        els.massSlider.value = Math.min(3000, Math.max(0, Number(els.massInput.value || 0)));
+        els.massSlider.value = Math.min(2000, Math.max(0, Number(els.massInput.value || 0)));
       }
       updateSliderVisual(els.massSlider, ['#ffd54a', '#ffd54a', '#ffd54a']);
       updateConversion();
@@ -2651,7 +2665,7 @@
     function toggleCoordsPanel() {
       const willShow = els.coordsPanel.classList.contains('hidden');
       els.coordsPanel.classList.toggle('hidden', !willShow);
-      els.coordsToggleButton.classList.toggle('active', willShow);
+      updateCoordsToggleAppearance();
       if (willShow) {
         startCoordsWatch();
       } else {
