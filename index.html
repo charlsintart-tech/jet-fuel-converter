@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
     :root {
@@ -174,14 +173,12 @@
     }
 
     .brand-card h1,
-    .home-hero h2,
-    .page-header h2 {
+    .home-hero h2 {
       margin: 0;
       line-height: 1.1;
     }
 
     .brand-card p,
-    .page-header p,
     .home-hero p,
     .muted,
     .faq-reference p,
@@ -339,6 +336,10 @@
       margin-bottom: 1rem;
     }
 
+    .page-header-textless {
+      margin-bottom: 0;
+    }
+
     .section-title {
       margin: 0 0 0.375rem;
       font-size: 1.05rem;
@@ -482,6 +483,30 @@
       overflow-wrap: anywhere;
     }
 
+    .weather-card[data-tone="cool"] {
+      background: rgba(93, 183, 255, 0.2);
+    }
+
+    .weather-card[data-tone="good"] {
+      background: rgba(124, 224, 184, 0.18);
+    }
+
+    .weather-card[data-tone="warn"] {
+      background: rgba(255, 170, 92, 0.2);
+    }
+
+    .weather-card[data-tone="danger"] {
+      background: rgba(255, 120, 120, 0.2);
+    }
+
+    .weather-card[data-tone="cloud"] {
+      background: rgba(148, 158, 171, 0.22);
+    }
+
+    .weather-card[data-tone="rain"] {
+      background: rgba(72, 82, 96, 0.34);
+    }
+
     .result-card strong,
     .weather-card strong,
     .log-stat strong {
@@ -524,6 +549,26 @@
       display: grid;
       gap: 0.5rem;
       margin-top: 0.75rem;
+    }
+
+    .coords-panel {
+      margin-bottom: 1rem;
+      padding: 0.875rem 1rem;
+      border-radius: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--panel-border);
+      color: var(--muted);
+      font-size: 0.92rem;
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .coords-panel strong {
+      color: var(--text);
+    }
+
+    .coords-panel.hidden {
+      display: none !important;
     }
 
     .search-result {
@@ -860,18 +905,20 @@
         </section>
 
         <section id="page-meteo" class="page">
-          <div class="page-header">
-            <div>
-              <h2 data-i18n="meteoTitle"></h2>
-              <p data-i18n="meteoSubtitle"></p>
-            </div>
+          <div class="page-header page-header-textless">
             <div class="button-row">
               <button class="chip" id="geoToggle"></button>
+              <button class="ghost-button" id="coordsToggleButton" aria-label="Coordinates">⌖</button>
               <button class="ghost-button" id="applyWeatherToConversion" data-i18n="applyWeatherToConversion"></button>
             </div>
           </div>
           <div class="page-stack">
             <div class="panel">
+              <div id="coordsPanel" class="coords-panel hidden">
+                <strong data-i18n="coordsTitle"></strong>
+                <div id="coordsLat"></div>
+                <div id="coordsLon"></div>
+              </div>
               <div class="grid-2">
                 <div class="field">
                   <label for="citySearch" data-i18n="citySearch"></label>
@@ -899,12 +946,9 @@
         </section>
 
         <section id="page-conversione" class="page">
-          <div class="page-header">
-            <div>
-              <h2 data-i18n="conversionTitle"></h2>
-              <p data-i18n="conversionSubtitle"></p>
-            </div>
+          <div class="page-header page-header-textless">
             <div class="button-row">
+              <button class="action-button" id="saveCalculationButton" data-i18n="save"></button>
               <button class="ghost-button" id="generateQrButton" data-i18n="generateQr"></button>
               <button class="ghost-button" id="exportCurrentCsvButton" data-i18n="exportCsv"></button>
               <button class="action-button" id="exportCurrentPdfButton" data-i18n="exportPdf"></button>
@@ -997,11 +1041,7 @@
         </section>
 
         <section id="page-storico" class="page">
-          <div class="page-header">
-            <div>
-              <h2 data-i18n="historyTitle"></h2>
-              <p data-i18n="historySubtitle"></p>
-            </div>
+          <div class="page-header page-header-textless">
             <div class="button-row">
               <button class="ghost-button" id="exportHistoryCsvButton" data-i18n="exportCsv"></button>
               <button class="ghost-button" id="exportHistoryPdfButton" data-i18n="exportPdf"></button>
@@ -1014,11 +1054,7 @@
         </section>
 
         <section id="page-log" class="page">
-          <div class="page-header">
-            <div>
-              <h2 data-i18n="logTitle"></h2>
-              <p data-i18n="logSubtitle"></p>
-            </div>
+          <div class="page-header page-header-textless">
             <div class="button-row">
               <button class="ghost-button" id="logAutofillWeather" data-i18n="logAutofillWeather"></button>
               <button class="ghost-button" id="logAutofillCalc" data-i18n="logAutofillCalc"></button>
@@ -1105,42 +1141,29 @@
         </section>
 
         <section id="page-faq" class="page">
-          <div class="page-header">
-            <div>
-              <h2 data-i18n="faqTitle"></h2>
-              <p data-i18n="faqSubtitle"></p>
-            </div>
-          </div>
           <div class="page-stack">
             <div class="panel">
               <h3 class="section-title" data-i18n="howItWorksTitle"></h3>
               <p id="howItWorksText"></p>
             </div>
-            <div class="faq-grid">
-              <div class="panel">
-                <h3 class="section-title" data-i18n="chartTitle"></h3>
-                <p class="muted" data-i18n="chartSubtitle"></p>
-                <canvas id="densityChart"></canvas>
-              </div>
-              <div class="panel">
-                <details open>
-                  <summary data-i18n="densityTableTitle"></summary>
-                  <div class="table-wrap" style="margin-top: 1rem;">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th data-i18n="temperatureColumn"></th>
-                          <th data-i18n="jetA1Column"></th>
-                          <th data-i18n="jetAColumn"></th>
-                          <th data-i18n="jetBColumn"></th>
-                          <th data-i18n="avgasColumn"></th>
-                        </tr>
-                      </thead>
-                      <tbody id="densityTableBody"></tbody>
-                    </table>
-                  </div>
-                </details>
-              </div>
+            <div class="panel">
+              <details open>
+                <summary data-i18n="densityTableTitle"></summary>
+                <div class="table-wrap" style="margin-top: 1rem;">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th data-i18n="temperatureColumn"></th>
+                        <th data-i18n="jetA1Column"></th>
+                        <th data-i18n="jetAColumn"></th>
+                        <th data-i18n="jetBColumn"></th>
+                        <th data-i18n="avgasColumn"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="densityTableBody"></tbody>
+                  </table>
+                </div>
+              </details>
             </div>
             <div class="panel">
               <h3 class="section-title" data-i18n="referencesTitle"></h3>
@@ -1270,6 +1293,7 @@
         mapTitle: 'Mappa Italia',
         mapSubtitle: 'Tocca la mappa per selezionare una posizione e caricare il meteo.',
         applyWeatherToConversion: 'Usa meteo in conversione',
+        coordsTitle: 'Coordinate GPS in tempo reale',
         geoOn: 'Geolocalizzazione: ON',
         geoOff: 'Geolocalizzazione: OFF',
         weatherIdle: 'Seleziona una città o usa la geolocalizzazione.',
@@ -1298,6 +1322,7 @@
         resultDensity: 'Densità calcolata',
         resultWeatherLink: 'Meteo collegato',
         generateQr: 'Genera QR',
+        save: 'Salva',
         exportCsv: 'Esporta CSV',
         exportPdf: 'Esporta PDF',
         historyTitle: 'Storico calcoli',
@@ -1351,6 +1376,7 @@
         routeFaq: 'Pagina FAQ',
         weatherApplied: 'Temperatura e pressione trasferite alla conversione.',
         historyCleared: 'Storico cancellato.',
+        historySaved: 'Calcolo salvato nello storico.',
         logSaved: 'Voce log salvata.',
         logUpdated: 'Voce log aggiornata.',
         logDeleted: 'Voce log eliminata.',
@@ -1371,6 +1397,7 @@
         themeSummaryDark: 'Tema: Notte',
         themeSummarySystem: 'Tema: Sistema',
         geolocationSearching: 'Ricerca posizione in corso…',
+        coordsUnavailable: 'Coordinate non disponibili.',
         mapHint: 'Selezione da mappa',
         exportFilenameCurrent: 'jet-fuel-current',
         exportFilenameHistory: 'jet-fuel-history',
@@ -1415,6 +1442,7 @@
         mapTitle: 'Italy map',
         mapSubtitle: 'Tap the map to select a location and load weather.',
         applyWeatherToConversion: 'Use weather in conversion',
+        coordsTitle: 'Live GPS coordinates',
         geoOn: 'Geolocation: ON',
         geoOff: 'Geolocation: OFF',
         weatherIdle: 'Select a city or use geolocation.',
@@ -1443,6 +1471,7 @@
         resultDensity: 'Computed density',
         resultWeatherLink: 'Weather link',
         generateQr: 'Generate QR',
+        save: 'Save',
         exportCsv: 'Export CSV',
         exportPdf: 'Export PDF',
         historyTitle: 'Calculation history',
@@ -1496,6 +1525,7 @@
         routeFaq: 'FAQ page',
         weatherApplied: 'Temperature and pressure sent to conversion.',
         historyCleared: 'History cleared.',
+        historySaved: 'Calculation saved to history.',
         logSaved: 'Log entry saved.',
         logUpdated: 'Log entry updated.',
         logDeleted: 'Log entry deleted.',
@@ -1516,6 +1546,7 @@
         themeSummaryDark: 'Theme: Night',
         themeSummarySystem: 'Theme: System',
         geolocationSearching: 'Searching position…',
+        coordsUnavailable: 'Coordinates unavailable.',
         mapHint: 'Map selection',
         exportFilenameCurrent: 'jet-fuel-current',
         exportFilenameHistory: 'jet-fuel-history',
@@ -1540,6 +1571,7 @@
       map: null,
       marker: null,
       chart: null,
+      coordsWatchId: null,
       logSortKey: 'date',
       logSortDirection: 'desc'
     };
@@ -1569,6 +1601,10 @@
       weatherStatus: document.getElementById('weatherStatus'),
       weatherCards: document.getElementById('weatherCards'),
       geoToggle: document.getElementById('geoToggle'),
+      coordsToggleButton: document.getElementById('coordsToggleButton'),
+      coordsPanel: document.getElementById('coordsPanel'),
+      coordsLat: document.getElementById('coordsLat'),
+      coordsLon: document.getElementById('coordsLon'),
       applyWeatherToConversion: document.getElementById('applyWeatherToConversion'),
       temperatureUnitSelector: document.getElementById('temperatureUnitSelector'),
       pressureUnitSelector: document.getElementById('pressureUnitSelector'),
@@ -1594,6 +1630,7 @@
       weatherLinkedResult: document.getElementById('weatherLinkedResult'),
       weatherLinkedMeta: document.getElementById('weatherLinkedMeta'),
       conversionStatus: document.getElementById('conversionStatus'),
+      saveCalculationButton: document.getElementById('saveCalculationButton'),
       generateQrButton: document.getElementById('generateQrButton'),
       exportCurrentCsvButton: document.getElementById('exportCurrentCsvButton'),
       exportCurrentPdfButton: document.getElementById('exportCurrentPdfButton'),
@@ -1785,7 +1822,6 @@
       updateLogVolumeFromMass();
       renderSummaries();
       renderDensityTable();
-      renderChart();
     }
 
     function updateMassLabel() {
@@ -1805,6 +1841,35 @@
       els.geoToggle.textContent = state.geolocationEnabled ? t('geoOn') : t('geoOff');
       els.howItWorksText.textContent = t('howItWorksText');
       updateMassLabel();
+    }
+
+    function getTemperatureTone(value) {
+      if (value >= 36 && value <= 45) return 'danger';
+      if (value >= 26 && value <= 35) return 'warn';
+      if (value >= 15 && value <= 25) return 'good';
+      if (value >= -10 && value <= 14) return 'cool';
+      return '';
+    }
+
+    function getHumidityTone(value) {
+      if (value >= 81) return 'danger';
+      if (value >= 51) return 'warn';
+      if (value >= 0) return 'good';
+      return '';
+    }
+
+    function getWindTone(value) {
+      if (value >= 66) return 'danger';
+      if (value >= 31) return 'warn';
+      if (value >= 0) return 'good';
+      return '';
+    }
+
+    function getConditionTone(code) {
+      if ([51, 61, 63, 65, 80, 95].includes(code)) return 'rain';
+      if ([2, 3, 45, 48].includes(code)) return 'cloud';
+      if ([0, 1].includes(code)) return 'cool';
+      return '';
     }
 
     function renderSummaries() {
@@ -1923,16 +1988,17 @@
         return;
       }
       const weatherCode = weatherCodes[state.weather.weatherCode] || weatherCodes[0];
+      const windKnots = state.weather.windSpeed * 0.539957;
       const cards = [
-        [t('weatherTemperature'), `${formatNumber(state.weather.temperature, 1)} °C`, '🌡️'],
-        [t('weatherHumidity'), `${formatNumber(state.weather.humidity, 0)} %`, '💧'],
-        [t('weatherWindSpeed'), `${formatNumber(state.weather.windSpeed, 1)} km/h`, '💨'],
-        [t('weatherWindDirection'), `${formatNumber(state.weather.windDirection, 0)}°`, '🧭'],
-        [t('weatherPressure'), `${formatNumber(state.weather.pressure, 1)} hPa`, '🧪'],
-        [t('weatherCondition'), weatherCode[state.language], weatherCode.icon]
+        [t('weatherTemperature'), `${formatNumber(state.weather.temperature, 1)} °C`, '🌡️', getTemperatureTone(state.weather.temperature)],
+        [t('weatherHumidity'), `${formatNumber(state.weather.humidity, 0)} %`, '💧', getHumidityTone(state.weather.humidity)],
+        [t('weatherWindSpeed'), `${formatNumber(state.weather.windSpeed, 1)} km/h · ${formatNumber(windKnots, 1)} kn`, '💨', getWindTone(state.weather.windSpeed)],
+        [t('weatherWindDirection'), `${formatNumber(state.weather.windDirection, 0)}°`, '🧭', ''],
+        [t('weatherPressure'), `${formatNumber(state.weather.pressure, 1)} hPa`, '🧪', ''],
+        [t('weatherCondition'), weatherCode[state.language], weatherCode.icon, getConditionTone(state.weather.weatherCode)]
       ];
-      els.weatherCards.innerHTML = cards.map(([label, value, icon]) => `
-        <div class="weather-card">
+      els.weatherCards.innerHTML = cards.map(([label, value, icon, tone]) => `
+        <div class="weather-card"${tone ? ` data-tone="${tone}"` : ''}>
           <div class="weather-icon">${icon}</div>
           <strong>${label}</strong>
           <div>${value}</div>
@@ -1952,16 +2018,30 @@
       state.marker = L.marker([41.9028, 12.4964]).addTo(state.map);
       state.map.on('click', async (event) => {
         const { lat, lng } = event.latlng;
-        updateMap(lat, lng, t('mapHint'));
+        updateMap(lat, lng, `${t('mapHint')} · ${toDms(lat, lng)}`);
         await reverseGeocode(lat, lng);
       });
+    }
+
+    function toDmsCoordinate(value, positive, negative) {
+      const absolute = Math.abs(value);
+      const degrees = Math.floor(absolute);
+      const minutesFloat = (absolute - degrees) * 60;
+      const minutes = Math.floor(minutesFloat);
+      const seconds = ((minutesFloat - minutes) * 60).toFixed(1);
+      const direction = value >= 0 ? positive : negative;
+      return `${degrees}°${minutes}'${seconds}"${direction}`;
+    }
+
+    function toDms(lat, lon) {
+      return `${toDmsCoordinate(lat, 'N', 'S')} ${toDmsCoordinate(lon, 'E', 'W')}`;
     }
 
     function updateMap(lat, lon, label) {
       if (!state.map || !state.marker) {
         return;
       }
-      state.marker.setLatLng([lat, lon]).bindPopup(label).openPopup();
+      state.marker.setLatLng([lat, lon]).bindPopup(`${label}<br>${toDms(lat, lon)}`).openPopup();
       state.map.setView([lat, lon], 8);
     }
 
@@ -2040,13 +2120,18 @@
       updateLogVolumeFromMass();
     }
 
+    function saveCurrentCalculation() {
+      pushHistory();
+      els.conversionStatus.textContent = t('historySaved');
+    }
+
     function syncMassControls(fromSlider = false) {
       if (fromSlider) {
         els.massInput.value = els.massSlider.value;
       } else {
         els.massSlider.value = Math.min(50000, Math.max(0, Number(els.massInput.value || 0)));
       }
-      updateSliderVisual(els.massSlider, ['#d9dde3', '#f0b36a', '#ff8a3d']);
+      updateSliderVisual(els.massSlider, ['#ffd54a', '#ffd54a', '#ffd54a']);
       updateConversion();
     }
 
@@ -2481,50 +2566,39 @@
       `).join('');
     }
 
-    function renderChart() {
-      if (!window.Chart) {
+    function stopCoordsWatch() {
+      if (state.coordsWatchId !== null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(state.coordsWatchId);
+        state.coordsWatchId = null;
+      }
+    }
+
+    function startCoordsWatch() {
+      if (!navigator.geolocation) {
+        els.coordsLat.textContent = t('coordsUnavailable');
+        els.coordsLon.textContent = '';
         return;
       }
-      const labels = [];
-      const datasets = Object.values(fuelProfiles).map((fuel, index) => {
-        const colors = ['#5db7ff', '#7ce0b8', '#ffca8a', '#ff8f8f'];
-        const data = [];
-        for (let temp = -40; temp <= 60; temp += 10) {
-          if (index === 0) {
-            labels.push(`${temp}°C`);
-          }
-          data.push(Number(computeDensity(temp, 1013.25, fuel.key).toFixed(4)));
-        }
-        return {
-          label: fuel.label,
-          data,
-          borderColor: colors[index],
-          backgroundColor: colors[index],
-          tension: 0.25
-        };
-      });
-      if (state.chart) {
-        state.chart.destroy();
+      stopCoordsWatch();
+      state.coordsWatchId = navigator.geolocation.watchPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        els.coordsLat.textContent = `Lat: ${latitude.toFixed(6)} · ${toDmsCoordinate(latitude, 'N', 'S')}`;
+        els.coordsLon.textContent = `Lon: ${longitude.toFixed(6)} · ${toDmsCoordinate(longitude, 'E', 'W')}`;
+      }, () => {
+        els.coordsLat.textContent = t('coordsUnavailable');
+        els.coordsLon.textContent = '';
+      }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
+    }
+
+    function toggleCoordsPanel() {
+      const willShow = els.coordsPanel.classList.contains('hidden');
+      els.coordsPanel.classList.toggle('hidden', !willShow);
+      els.coordsToggleButton.classList.toggle('active', willShow);
+      if (willShow) {
+        startCoordsWatch();
+      } else {
+        stopCoordsWatch();
       }
-      state.chart = new Chart(document.getElementById('densityChart'), {
-        type: 'line',
-        data: { labels, datasets },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted') } },
-            x: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted') } }
-          },
-          plugins: {
-            legend: {
-              labels: {
-                color: getComputedStyle(document.documentElement).getPropertyValue('--text')
-              }
-            }
-          }
-        }
-      });
     }
 
     function applyWeatherToConversion() {
@@ -2564,10 +2638,9 @@
       els.massSlider.value = '1000';
       setTemperatureDisplay(state.weather?.temperature ?? 15);
       setPressureDisplay(state.weather?.pressure ?? 1013.25);
-      updateSliderVisual(els.massSlider, ['#d9dde3', '#f0b36a', '#ff8a3d']);
+      updateSliderVisual(els.massSlider, ['#ffd54a', '#ffd54a', '#ffd54a']);
       renderDensityTable();
       renderReferences();
-      renderChart();
       renderWeatherCards();
       renderHistory();
       renderLog();
@@ -2612,6 +2685,7 @@
     });
 
     els.geoToggle.addEventListener('click', toggleGeolocation);
+    els.coordsToggleButton.addEventListener('click', toggleCoordsPanel);
     els.applyWeatherToConversion.addEventListener('click', applyWeatherToConversion);
 
     els.massInput.addEventListener('input', () => syncMassControls(false));
@@ -2639,6 +2713,7 @@
       pushHistory();
       openQrModal();
     });
+    els.saveCalculationButton.addEventListener('click', saveCurrentCalculation);
     els.exportCurrentCsvButton.addEventListener('click', exportCurrentCsv);
     els.exportCurrentPdfButton.addEventListener('click', exportCurrentPdf);
     els.exportHistoryCsvButton.addEventListener('click', exportHistoryCsv);
@@ -2662,7 +2737,6 @@
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
       if (state.theme === 'system') {
         applyTheme('system');
-        renderChart();
       }
     });
 
