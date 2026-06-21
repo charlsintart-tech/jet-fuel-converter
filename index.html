@@ -1944,6 +1944,15 @@
       return routes.includes(hash) ? hash : 'home';
     }
 
+    function syncConversionFromWeather() {
+      if (!state.weather) {
+        return;
+      }
+      setTemperatureDisplay(state.weather.temperature);
+      setPressureDisplay(state.weather.pressure);
+      updateConversion();
+    }
+
     function renderRoute() {
       state.route = getRouteFromHash();
       els.pages.forEach((page) => {
@@ -1956,6 +1965,9 @@
       els.topbarRoute.textContent = t(routeKey);
       if (state.route === 'meteo' && state.map) {
         setTimeout(() => state.map.invalidateSize(), 120);
+      }
+      if (state.route === 'conversione' && state.weather) {
+        syncConversionFromWeather();
       }
     }
 
@@ -2031,7 +2043,7 @@
         els.weatherStatus.textContent = '';
         renderWeatherCards();
         renderSummaries();
-        updateConversion();
+        syncConversionFromWeather();
       } catch {
         els.weatherStatus.textContent = t('weatherError');
       }
@@ -2685,9 +2697,7 @@
         els.weatherStatus.textContent = t('noWeatherData');
         return;
       }
-      setTemperatureDisplay(state.weather.temperature);
-      setPressureDisplay(state.weather.pressure);
-      updateConversion();
+      syncConversionFromWeather();
       els.conversionStatus.textContent = t('weatherApplied');
       window.location.hash = '#conversione';
     }
