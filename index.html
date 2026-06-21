@@ -421,6 +421,18 @@
       border: 1px solid rgba(93, 183, 255, 0.38);
     }
 
+    .whatsapp-button {
+      background: #25D366;
+      border: 1px solid #25D366;
+      color: #062b12;
+      font-weight: 600;
+    }
+
+    .whatsapp-button:hover {
+      background: #20bd5b;
+      border-color: #20bd5b;
+    }
+
     .ghost-button {
       border: 1px solid rgba(143, 211, 255, 0.18);
     }
@@ -949,6 +961,7 @@
           <div class="page-header page-header-textless">
             <div class="button-row">
               <button class="action-button" id="saveCalculationButton" data-i18n="save"></button>
+              <button class="action-button whatsapp-button" id="shareWhatsappButton" data-i18n="shareWhatsapp"></button>
               <button class="ghost-button" id="generateQrButton" data-i18n="generateQr"></button>
               <button class="ghost-button" id="exportCurrentCsvButton" data-i18n="exportCsv"></button>
               <button class="action-button" id="exportCurrentPdfButton" data-i18n="exportPdf"></button>
@@ -982,9 +995,9 @@
               <div class="grid-3">
                 <div class="field">
                   <label for="massInput" id="massLabel"></label>
-                  <input id="massInput" type="number" min="0" max="10000" step="1">
+                  <input id="massInput" type="number" min="0" max="5000" step="1">
                   <div class="slider-wrap">
-                    <input id="massSlider" class="slider" type="range" min="0" max="10000" step="1">
+                    <input id="massSlider" class="slider" type="range" min="0" max="5000" step="1">
                   </div>
                 </div>
                 <div class="field">
@@ -1323,6 +1336,7 @@
         resultWeatherLink: 'Meteo collegato',
         generateQr: 'Genera QR',
         save: 'Salva',
+        shareWhatsapp: '📱 Invia su WhatsApp',
         exportCsv: 'Esporta CSV',
         exportPdf: 'Esporta PDF',
         historyTitle: 'Storico calcoli',
@@ -1472,6 +1486,7 @@
         resultWeatherLink: 'Weather link',
         generateQr: 'Generate QR',
         save: 'Save',
+        shareWhatsapp: '📱 Share on WhatsApp',
         exportCsv: 'Export CSV',
         exportPdf: 'Export PDF',
         historyTitle: 'Calculation history',
@@ -1631,6 +1646,7 @@
       weatherLinkedMeta: document.getElementById('weatherLinkedMeta'),
       conversionStatus: document.getElementById('conversionStatus'),
       saveCalculationButton: document.getElementById('saveCalculationButton'),
+      shareWhatsappButton: document.getElementById('shareWhatsappButton'),
       generateQrButton: document.getElementById('generateQrButton'),
       exportCurrentCsvButton: document.getElementById('exportCurrentCsvButton'),
       exportCurrentPdfButton: document.getElementById('exportCurrentPdfButton'),
@@ -2125,11 +2141,31 @@
       els.conversionStatus.textContent = t('historySaved');
     }
 
+    function shareOnWhatsApp() {
+      const entry = state.currentCalculation;
+      if (!entry) {
+        return;
+      }
+      const message = [
+        'Jet Fuel Converter',
+        `Fuel: ${entry.fuelType}`,
+        `Mass: ${formatNumber(entry.massKg, 2)} kg`,
+        `Volume: ${formatNumber(entry.volumeLiters, 2)} L`,
+        `US Gallons: ${formatNumber(entry.volumeLiters * 0.2641720524, 2)}`,
+        `Imperial Gallons: ${formatNumber(entry.volumeLiters * 0.2199692483, 2)}`,
+        `Density: ${formatNumber(entry.density, 4)} kg/L`,
+        `Temperature: ${formatNumber(entry.temperatureC, 1)} °C`,
+        `Pressure: ${formatNumber(entry.pressureHpa, 1)} hPa`
+      ].join('\n');
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
     function syncMassControls(fromSlider = false) {
       if (fromSlider) {
         els.massInput.value = els.massSlider.value;
       } else {
-        els.massSlider.value = Math.min(10000, Math.max(0, Number(els.massInput.value || 0)));
+        els.massSlider.value = Math.min(5000, Math.max(0, Number(els.massInput.value || 0)));
       }
       updateSliderVisual(els.massSlider, ['#ffd54a', '#ffd54a', '#ffd54a']);
       updateConversion();
@@ -2718,6 +2754,7 @@
       openQrModal();
     });
     els.saveCalculationButton.addEventListener('click', saveCurrentCalculation);
+    els.shareWhatsappButton.addEventListener('click', shareOnWhatsApp);
     els.exportCurrentCsvButton.addEventListener('click', exportCurrentCsv);
     els.exportCurrentPdfButton.addEventListener('click', exportCurrentPdf);
     els.exportHistoryCsvButton.addEventListener('click', exportHistoryCsv);
