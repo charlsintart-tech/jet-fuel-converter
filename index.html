@@ -1041,9 +1041,12 @@
                       <button class="chip" data-temp-unit="C">°C</button>
                       <button class="chip" data-temp-unit="F">°F</button>
                     </div>
-                    <div class="chip-row" id="pressureUnitSelector">
-                      <button class="chip" data-pressure-unit="hPa">hPa</button>
-                      <button class="chip" data-pressure-unit="inHg">inHg</button>
+                    <div class="field" style="flex: 1 1 10rem; min-width: 0;">
+                      <label data-i18n="pressureUnits"></label>
+                      <div class="chip-row" id="pressureUnitSelector">
+                        <button class="chip" data-pressure-unit="hPa">hPa</button>
+                        <button class="chip" data-pressure-unit="inHg">inHg</button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2550,16 +2553,11 @@
 
     function exportCurrentPdf() {
       pushHistory();
-      const entry = state.currentCalculation;
-      exportPdf('Jet Fuel Current Calculation', [
-        `Fuel: ${entry.fuelType}`,
-        `Mode: ${entry.mode}`,
-        `Mass kg: ${formatNumber(entry.massKg, 2)}`,
-        `Volume L: ${formatNumber(entry.volumeLiters, 2)}`,
-        `Density kg/L: ${formatNumber(entry.density, 4)}`,
-        `Temperature C: ${formatNumber(entry.temperatureC, 1)}`,
-        `Pressure hPa: ${formatNumber(entry.pressureHpa, 1)}`
-      ], `${t('exportFilenameCurrent')}.pdf`, els.conversionStatus);
+      const message = buildShareMessage();
+      if (!message) {
+        return;
+      }
+      exportPdf('Jet Fuel Current Calculation', message.split('\n'), `${t('exportFilenameCurrent')}.pdf`, els.conversionStatus);
     }
 
     function exportHistoryPdf() {
@@ -2587,6 +2585,7 @@
       const message = buildShareMessage();
       els.qrBox.innerHTML = '';
       if (!message) {
+        els.conversionStatus.textContent = t('qrFallback');
         return;
       }
       if (!window.QRCode) {
@@ -2594,12 +2593,17 @@
         els.qrModal.classList.add('open');
         return;
       }
-      new QRCode(els.qrBox, {
-        text: message,
-        width: 180,
-        height: 180
-      });
-      els.qrModal.classList.add('open');
+      try {
+        new QRCode(els.qrBox, {
+          text: message,
+          width: 180,
+          height: 180
+        });
+        els.qrModal.classList.add('open');
+      } catch (error) {
+        console.error(error);
+        els.conversionStatus.textContent = t('qrFallback');
+      }
     }
 
     function closeQrModal() {
