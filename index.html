@@ -491,6 +491,31 @@
       border: 1px solid rgba(143, 211, 255, 0.18);
     }
 
+    .conversion-actions {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.5rem;
+    }
+
+    .conversion-actions > button {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0.7rem 0.75rem;
+      font-size: 0.92rem;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 420px) {
+      .conversion-actions {
+        gap: 0.4rem;
+      }
+
+      .conversion-actions > button {
+        padding: 0.65rem 0.55rem;
+        font-size: 0.82rem;
+      }
+    }
+
     .slider-wrap {
       display: grid;
       gap: 0.625rem;
@@ -970,7 +995,7 @@
               <div class="settings-card">
                 <h3 class="section-title" data-i18n="homeStartTitle"></h3>
                 <p class="muted" data-i18n="homeStartSubtitle"></p>
-                <div class="button-row">
+                <div class="button-row conversion-actions">
                   <a class="action-button" href="#meteo" data-i18n="goToMeteo"></a>
                   <a class="ghost-button" href="#conversione" data-i18n="goToConversione"></a>
                 </div>
@@ -1025,29 +1050,12 @@
             <div class="button-row">
               <button class="action-button" id="saveCalculationButton" data-i18n="save"></button>
               <button class="action-button whatsapp-button" id="shareWhatsappButton" data-i18n="shareWhatsapp"></button>
-              <button class="ghost-button" id="exportCurrentCsvButton" data-i18n="exportCsv"></button>
               <button class="action-button" id="exportCurrentPdfButton" data-i18n="exportPdf"></button>
             </div>
           </div>
           <div class="page-stack">
             <div class="panel">
               <div class="grid-3">
-                <div class="field">
-                  <label data-i18n="temperatureUnits"></label>
-                  <div class="toggle-row">
-                    <div class="chip-row" id="temperatureUnitSelector">
-                      <button class="chip" data-temp-unit="C">°C</button>
-                      <button class="chip" data-temp-unit="F">°F</button>
-                    </div>
-                    <div class="field" style="flex: 1 1 10rem; min-width: 0;">
-                      <label data-i18n="pressureUnits"></label>
-                      <div class="chip-row" id="pressureUnitSelector">
-                        <button class="chip" data-pressure-unit="hPa">hPa</button>
-                        <button class="chip" data-pressure-unit="inHg">inHg</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
                 <div class="field">
                   <label for="conversionFuelType" data-i18n="fuelType"></label>
                   <select id="conversionFuelType"></select>
@@ -1418,14 +1426,10 @@
         localLabel: 'locale',
         conversionTitle: 'Conversione carburante',
         conversionSubtitle: 'Calcolo realtime con slider sincronizzati, QR ed export.',
-        temperatureUnits: 'Unità temperatura',
-        pressureUnits: 'Unità pressione',
         massKg: 'Massa (kg)',
         volumeLiters: 'Volume (L)',
         temperatureLabelC: 'Temperatura (°C)',
-        temperatureLabelF: 'Temperatura (°F)',
         pressureLabelHpa: 'Pressione (hPa)',
-        pressureLabelInHg: 'Pressione (inHg)',
         resultPrimary: 'Risultato principale',
         resultLiters: 'Litri',
         resultUsGallons: 'Galloni US',
@@ -1434,7 +1438,6 @@
         resultWeatherLink: 'Meteo',
         save: 'Salva',
         shareWhatsapp: '📱 Invia su WhatsApp',
-        exportCsv: 'Esporta CSV',
         exportPdf: 'Esporta PDF',
         historyTitle: 'Storico calcoli',
         historySubtitle: 'Ultimi 20 risultati salvati automaticamente.',
@@ -1583,14 +1586,10 @@
         localLabel: 'local',
         conversionTitle: 'Fuel conversion',
         conversionSubtitle: 'Realtime calculation with synced sliders, QR and export.',
-        temperatureUnits: 'Temperature units',
-        pressureUnits: 'Pressure units',
         massKg: 'Mass (kg)',
         volumeLiters: 'Volume (L)',
         temperatureLabelC: 'Temperature (°C)',
-        temperatureLabelF: 'Temperature (°F)',
         pressureLabelHpa: 'Pressure (hPa)',
-        pressureLabelInHg: 'Pressure (inHg)',
         resultPrimary: 'Primary result',
         resultLiters: 'Liters',
         resultUsGallons: 'US gallons',
@@ -1599,7 +1598,6 @@
         resultWeatherLink: 'Weather',
         save: 'Save',
         shareWhatsapp: '📱 Share on WhatsApp',
-        exportCsv: 'Export CSV',
         exportPdf: 'Export PDF',
         historyTitle: 'Calculation history',
         historySubtitle: 'Last 20 results saved automatically.',
@@ -1697,8 +1695,6 @@
       theme: localStorage.getItem(storageKeys.theme) || 'system',
       fuelType: localStorage.getItem(storageKeys.fuelType) || 'jetA1',
       mode: localStorage.getItem(storageKeys.mode) || 'kg-to-liters',
-      temperatureUnit: 'C',
-      pressureUnit: 'hPa',
       weather: loadJson(storageKeys.weather, null),
       geolocationEnabled: localStorage.getItem(storageKeys.geolocation) === 'true',
       history: loadJson(storageKeys.history, []),
@@ -1743,8 +1739,6 @@
       coordsLat: document.getElementById('coordsLat'),
       coordsLon: document.getElementById('coordsLon'),
       applyWeatherToConversion: document.getElementById('applyWeatherToConversion'),
-      temperatureUnitSelector: document.getElementById('temperatureUnitSelector'),
-      pressureUnitSelector: document.getElementById('pressureUnitSelector'),
       massInput: document.getElementById('massInput'),
       massSlider: document.getElementById('massSlider'),
       temperatureInput: document.getElementById('temperatureInput'),
@@ -1769,7 +1763,6 @@
       conversionStatus: document.getElementById('conversionStatus'),
       saveCalculationButton: document.getElementById('saveCalculationButton'),
       shareWhatsappButton: document.getElementById('shareWhatsappButton'),
-      exportCurrentCsvButton: document.getElementById('exportCurrentCsvButton'),
       exportCurrentPdfButton: document.getElementById('exportCurrentPdfButton'),
       historyList: document.getElementById('historyList'),
       exportHistoryCsvButton: document.getElementById('exportHistoryCsvButton'),
@@ -1873,25 +1866,21 @@
     }
 
     function getCurrentTempC() {
-      const raw = Number(els.temperatureInput.value || 0);
-      return state.temperatureUnit === 'C' ? raw : fToC(raw);
+      return Number(els.temperatureInput.value || 0);
     }
 
     function getCurrentPressureHpa() {
-      const raw = Number(els.pressureInput.value || 0);
-      return state.pressureUnit === 'hPa' ? raw : inHgToHpa(raw);
+      return Number(els.pressureInput.value || 0);
     }
 
     function setTemperatureDisplay(tempC) {
-      const display = state.temperatureUnit === 'C' ? tempC : cToF(tempC);
-      els.temperatureInput.value = formatPlain(display, 1);
+      els.temperatureInput.value = formatPlain(tempC, 1);
       els.temperatureSlider.value = formatPlain(tempC, 1);
       updateSliderVisual(els.temperatureSlider, ['#ffd54a', '#ff9f1c', '#ff5a36']);
     }
 
     function setPressureDisplay(pressureHpa) {
-      const display = state.pressureUnit === 'hPa' ? pressureHpa : hpaToInHg(pressureHpa);
-      els.pressureInput.value = formatPlain(display, 1);
+      els.pressureInput.value = formatPlain(pressureHpa, 1);
       els.pressureSlider.value = formatPlain(pressureHpa, 1);
       updateSliderVisual(els.pressureSlider, ['#4da3ff', '#2fd0c8', '#6fe38a']);
     }
@@ -1975,8 +1964,8 @@
 
     function updateMassLabel() {
       els.massLabel.textContent = state.mode === 'kg-to-liters' ? t('massKg') : t('volumeLiters');
-      els.temperatureLabel.textContent = state.temperatureUnit === 'C' ? t('temperatureLabelC') : t('temperatureLabelF');
-      els.pressureLabel.textContent = state.pressureUnit === 'hPa' ? t('pressureLabelHpa') : t('pressureLabelInHg');
+      els.temperatureLabel.textContent = t('temperatureLabelC');
+      els.pressureLabel.textContent = t('pressureLabelHpa');
     }
 
     function updateGeoToggleAppearance() {
@@ -2375,7 +2364,7 @@
       if (fromSlider) {
         setTemperatureDisplay(Number(els.temperatureSlider.value));
       } else {
-        const tempC = state.temperatureUnit === 'C' ? Number(els.temperatureInput.value || 0) : fToC(Number(els.temperatureInput.value || 0));
+        const tempC = Number(els.temperatureInput.value || 0);
         els.temperatureSlider.value = Math.min(60, Math.max(-40, tempC));
         updateSliderVisual(els.temperatureSlider, ['#ffd54a', '#ff9f1c', '#ff5a36']);
       }
@@ -2386,32 +2375,10 @@
       if (fromSlider) {
         setPressureDisplay(Number(els.pressureSlider.value));
       } else {
-        const pressureHpa = state.pressureUnit === 'hPa' ? Number(els.pressureInput.value || 0) : inHgToHpa(Number(els.pressureInput.value || 0));
+        const pressureHpa = Number(els.pressureInput.value || 0);
         els.pressureSlider.value = Math.min(1100, Math.max(800, pressureHpa));
         updateSliderVisual(els.pressureSlider, ['#4da3ff', '#2fd0c8', '#6fe38a']);
       }
-      updateConversion();
-    }
-
-    function switchTemperatureUnit(unit) {
-      const tempC = getCurrentTempC();
-      state.temperatureUnit = unit;
-      document.querySelectorAll('[data-temp-unit]').forEach((button) => {
-        button.classList.toggle('active', button.dataset.tempUnit === unit);
-      });
-      setTemperatureDisplay(tempC);
-      updateMassLabel();
-      updateConversion();
-    }
-
-    function switchPressureUnit(unit) {
-      const pressureHpa = getCurrentPressureHpa();
-      state.pressureUnit = unit;
-      document.querySelectorAll('[data-pressure-unit]').forEach((button) => {
-        button.classList.toggle('active', button.dataset.pressureUnit === unit);
-      });
-      setPressureDisplay(pressureHpa);
-      updateMassLabel();
       updateConversion();
     }
 
@@ -2460,18 +2427,6 @@
       link.download = filename;
       link.click();
       URL.revokeObjectURL(url);
-    }
-
-    function exportCurrentCsv() {
-      pushHistory();
-      const entry = state.currentCalculation;
-      const rows = [
-        ['timestamp', 'fuelType', 'mode', 'massKg', 'volumeLiters', 'density', 'temperatureC', 'pressureHpa'],
-        [entry.timestamp, entry.fuelType, entry.mode, entry.massKg, entry.volumeLiters, entry.density, entry.temperatureC, entry.pressureHpa]
-      ];
-      const csv = rows.map((row) => row.map(csvEscape).join(',')).join('\n');
-      downloadFile(`${t('exportFilenameCurrent')}.csv`, csv, 'text/csv;charset=utf-8');
-      els.conversionStatus.textContent = t('csvDone');
     }
 
     function exportHistoryCsv() {
@@ -2860,8 +2815,7 @@
       applyLanguage(state.language);
       applyMode(state.mode);
       applyFuelType(state.fuelType);
-      switchTemperatureUnit(state.temperatureUnit || 'C');
-      switchPressureUnit(state.pressureUnit || 'hPa');
+      updateMassLabel();
       updateSliderVisual(els.massSlider, ['#ffd54a', '#ffd54a', '#ffd54a']);
       renderDensityTable();
       renderWeatherCards();
@@ -2919,23 +2873,8 @@
     els.pressureInput.addEventListener('input', () => syncPressureControls(false));
     els.pressureSlider.addEventListener('input', () => syncPressureControls(true));
 
-    els.temperatureUnitSelector.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-temp-unit]');
-      if (button) {
-        switchTemperatureUnit(button.dataset.tempUnit);
-      }
-    });
-
-    els.pressureUnitSelector.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-pressure-unit]');
-      if (button) {
-        switchPressureUnit(button.dataset.pressureUnit);
-      }
-    });
-
     els.saveCalculationButton.addEventListener('click', saveCurrentCalculation);
     els.shareWhatsappButton.addEventListener('click', shareOnWhatsApp);
-    els.exportCurrentCsvButton.addEventListener('click', exportCurrentCsv);
     els.exportCurrentPdfButton.addEventListener('click', exportCurrentPdf);
     els.exportHistoryCsvButton.addEventListener('click', exportHistoryCsv);
     els.exportHistoryPdfButton.addEventListener('click', exportHistoryPdf);
