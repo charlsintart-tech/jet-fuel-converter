@@ -14,7 +14,6 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link rel="preconnect" href="https://geocoding-api.open-meteo.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
@@ -1026,7 +1025,6 @@
             <div class="button-row">
               <button class="action-button" id="saveCalculationButton" data-i18n="save"></button>
               <button class="action-button whatsapp-button" id="shareWhatsappButton" data-i18n="shareWhatsapp"></button>
-              <button class="ghost-button" id="generateQrButton" data-i18n="generateQr"></button>
               <button class="ghost-button" id="exportCurrentCsvButton" data-i18n="exportCsv"></button>
               <button class="action-button" id="exportCurrentPdfButton" data-i18n="exportPdf"></button>
             </div>
@@ -1298,20 +1296,6 @@
     <a href="#log" data-route="log"><span class="icon">🛢️</span><span data-i18n="navLog"></span></a>
   </nav>
 
-  <div class="modal" id="qrModal">
-    <div class="modal-card">
-      <div>
-        <h3 data-i18n="qrTitle"></h3>
-        <p class="muted" data-i18n="qrSubtitle"></p>
-      </div>
-      <div class="qr-box" id="qrBox"></div>
-      <div class="button-row">
-        <button class="ghost-button" id="downloadQrButton" data-i18n="downloadQr"></button>
-        <button class="action-button" id="closeQrButton" data-i18n="close"></button>
-      </div>
-    </div>
-  </div>
-
   <script>
     const routes = ['home', 'meteo', 'conversione', 'consumo', 'storico', 'log'];
     const storageKeys = {
@@ -1448,7 +1432,6 @@
         resultImpGallons: 'Galloni Imperial',
         resultDensity: 'Densità calcolata',
         resultWeatherLink: 'Meteo',
-        generateQr: 'Genera QR',
         save: 'Salva',
         shareWhatsapp: '📱 Invia su WhatsApp',
         exportCsv: 'Esporta CSV',
@@ -1614,7 +1597,6 @@
         resultImpGallons: 'Imperial gallons',
         resultDensity: 'Computed density',
         resultWeatherLink: 'Weather',
-        generateQr: 'Generate QR',
         save: 'Save',
         shareWhatsapp: '📱 Share on WhatsApp',
         exportCsv: 'Export CSV',
@@ -1712,7 +1694,7 @@
     const state = {
       route: 'home',
       language: localStorage.getItem(storageKeys.language) || 'it',
-      theme: localStorage.getItem(storageKeys.theme) || 'dark',
+      theme: localStorage.getItem(storageKeys.theme) || 'system',
       fuelType: localStorage.getItem(storageKeys.fuelType) || 'jetA1',
       mode: localStorage.getItem(storageKeys.mode) || 'kg-to-liters',
       temperatureUnit: 'C',
@@ -1787,7 +1769,6 @@
       conversionStatus: document.getElementById('conversionStatus'),
       saveCalculationButton: document.getElementById('saveCalculationButton'),
       shareWhatsappButton: document.getElementById('shareWhatsappButton'),
-      generateQrButton: document.getElementById('generateQrButton'),
       exportCurrentCsvButton: document.getElementById('exportCurrentCsvButton'),
       exportCurrentPdfButton: document.getElementById('exportCurrentPdfButton'),
       historyList: document.getElementById('historyList'),
@@ -1829,10 +1810,6 @@
       consumoDensityMeta: document.getElementById('consumoDensityMeta'),
       consumoRefuelMeta: document.getElementById('consumoRefuelMeta'),
       howItWorksText: document.getElementById('howItWorksText'),
-      qrModal: document.getElementById('qrModal'),
-      qrBox: document.getElementById('qrBox'),
-      downloadQrButton: document.getElementById('downloadQrButton'),
-      closeQrButton: document.getElementById('closeQrButton')
     };
 
     function loadJson(key, fallback) {
@@ -2581,46 +2558,6 @@
       ), `${t('exportFilenameLog')}.pdf`, els.logStatus);
     }
 
-    function openQrModal() {
-      const message = buildShareMessage();
-      els.qrBox.innerHTML = '';
-      if (!message) {
-        els.conversionStatus.textContent = t('qrFallback');
-        return;
-      }
-      if (!window.QRCode) {
-        els.qrBox.textContent = t('qrFallback');
-        els.qrModal.classList.add('open');
-        return;
-      }
-      try {
-        new QRCode(els.qrBox, {
-          text: message,
-          width: 180,
-          height: 180
-        });
-        els.qrModal.classList.add('open');
-      } catch (error) {
-        console.error(error);
-        els.conversionStatus.textContent = t('qrFallback');
-      }
-    }
-
-    function closeQrModal() {
-      els.qrModal.classList.remove('open');
-    }
-
-    function downloadQr() {
-      const image = els.qrBox.querySelector('img, canvas');
-      if (!image) {
-        return;
-      }
-      const link = document.createElement('a');
-      link.download = 'jet-fuel-qr.png';
-      link.href = image.tagName === 'IMG' ? image.src : image.toDataURL('image/png');
-      link.click();
-    }
-
     function updateLogVolumeFromMass() {
       const massKg = Number(els.logMassKg.value || 0);
       const tempC = Number(els.logTemperature.value || getCurrentTempC() || 15);
@@ -2996,10 +2933,6 @@
       }
     });
 
-    els.generateQrButton.addEventListener('click', () => {
-      pushHistory();
-      openQrModal();
-    });
     els.saveCalculationButton.addEventListener('click', saveCurrentCalculation);
     els.shareWhatsappButton.addEventListener('click', shareOnWhatsApp);
     els.exportCurrentCsvButton.addEventListener('click', exportCurrentCsv);
@@ -3034,14 +2967,6 @@
       els.consumoMinutes.value = button.dataset.consumoMinutes;
       updateConsumo();
     });
-    els.downloadQrButton.addEventListener('click', downloadQr);
-    els.closeQrButton.addEventListener('click', closeQrModal);
-    els.qrModal.addEventListener('click', (event) => {
-      if (event.target === els.qrModal) {
-        closeQrModal();
-      }
-    });
-
     window.addEventListener('hashchange', renderRoute);
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
       if (state.theme === 'system') {
