@@ -1437,7 +1437,7 @@
         resultDensity: 'Densità calcolata',
         resultWeatherLink: 'Meteo',
         save: 'Salva',
-        shareWhatsapp: '📱 Invia su WhatsApp',
+        shareWhatsapp: 'WhatsApp',
         exportPdf: 'Esporta PDF',
         historyTitle: 'Storico calcoli',
         historySubtitle: 'Ultimi 20 risultati salvati automaticamente.',
@@ -1847,22 +1847,6 @@
       const pressureDelta = pressureHpa - 1013.25;
       const density = fuel.density15 - tempDelta * fuel.tempCoeff + pressureDelta * fuel.pressureCoeff;
       return Math.max(0.6, density);
-    }
-
-    function cToF(value) {
-      return (value * 9) / 5 + 32;
-    }
-
-    function fToC(value) {
-      return ((value - 32) * 5) / 9;
-    }
-
-    function hpaToInHg(value) {
-      return value * 0.0295299830714;
-    }
-
-    function inHgToHpa(value) {
-      return value / 0.0295299830714;
     }
 
     function getCurrentTempC() {
