@@ -420,6 +420,12 @@
       color: var(--accent-strong);
     }
 
+    .preset-active {
+      background: #22c55e !important;
+      border-color: #22c55e !important;
+      color: #ffffff !important;
+    }
+
     #geoToggle.geo-on {
       background: #22c55e !important;
       border-color: #22c55e !important;
@@ -1882,8 +1888,11 @@
       const min = Number(slider.min);
       const max = Number(slider.max);
       const value = Number(slider.value);
-      const percent = ((value - min) / (max - min)) * 100;
-      slider.style.setProperty('--track', `linear-gradient(90deg, ${colors[0]} 0%, ${colors[1]} ${percent * 0.6}%, ${colors[2]} 100%)`);
+      const percent = ((value - min) / Math.max(1, (max - min))) * 100;
+      const track = colors[0] === colors[1] && colors[1] === colors[2]
+        ? colors[0]
+        : `linear-gradient(90deg, ${colors[0]} 0%, ${colors[1]} ${Math.max(35, percent * 0.6)}%, ${colors[2]} 100%)`;
+      slider.style.setProperty('--track', track);
     }
 
     function populateFuelSelects() {
@@ -2022,9 +2031,6 @@
       const rawHash = window.location.hash || '';
       const hash = rawHash.replace('#', '');
       if (!hash || hash === 'home') {
-        if (window.location.hash !== '#meteo') {
-          window.location.hash = '#meteo';
-        }
         return 'meteo';
       }
       return routes.includes(hash) ? hash : 'meteo';
@@ -2041,6 +2047,9 @@
 
     function renderRoute() {
       state.route = getRouteFromHash();
+      if ((!window.location.hash || window.location.hash === '#' || window.location.hash === '#home') && window.location.hash !== '#meteo') {
+        window.history.replaceState(null, '', '#meteo');
+      }
       els.pages.forEach((page) => {
         page.classList.toggle('active', page.id === `page-${state.route}`);
       });
@@ -2319,7 +2328,7 @@
         `Densità: ${formatNumber(entry.density, 4)} kg/L`,
         `Umidità: ${state.weather ? `${formatNumber(state.weather.humidity, 0)}%` : '-'}`,
         `Vento: ${state.weather ? `${formatNumber(state.weather.windSpeed, 1)} km/h` : '-'}`
-      ].join(' | ');
+      ].join('\n');
       const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank', 'noopener,noreferrer');
     }
@@ -2741,6 +2750,13 @@
       });
     }
 
+    function setPresetActive(container, value, attribute) {
+      if (!container) return;
+      container.querySelectorAll(`[${attribute}]`).forEach((button) => {
+        button.classList.toggle('preset-active', button.getAttribute(attribute) === String(value));
+      });
+    }
+
     function updateConsumo() {
       const departure = Number(els.consumoDeparture?.value || 0);
       const hourly = Number(els.consumoHourly?.value || 0);
@@ -2760,6 +2776,8 @@
         const showWarning = !departure || remaining < 0;
         els.consumoWarning.textContent = showWarning ? t('consumoWarning') : '';
       }
+      setPresetActive(els.consumoDeparturePresets, departure || '', 'data-consumo-departure');
+      setPresetActive(els.consumoHourlyPresets, hourly || '', 'data-consumo-hourly');
     }
 
     function renderDensityTable() {
@@ -2971,7 +2989,10 @@
 
     initializeMap();
     attachLogHandlers();
-    initializeDefaults();
+    document.addEventListener('DOMContentLoaded', initializeDefaults, { once: true });
+    if (document.readyState !== 'loading') {
+      initializeDefaults();
+    }
   </script>
 </body>
 </html>
