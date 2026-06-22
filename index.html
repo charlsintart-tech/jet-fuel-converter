@@ -393,6 +393,10 @@
       gap: 0.625rem;
     }
 
+    .toggle-row > .chip-row {
+      flex: 1 1 10rem;
+    }
+
     .chip,
     .action-button,
     .ghost-button,
@@ -859,6 +863,7 @@
         <a href="#conversione" data-route="conversione"><span class="icon">🧮</span><span data-i18n="navConversione"></span></a>
         <a href="#storico" data-route="storico"><span class="icon">🕘</span><span data-i18n="navStorico"></span></a>
         <a href="#log" data-route="log"><span class="icon">🛢️</span><span data-i18n="navLog"></span></a>
+        <a href="#consumo" data-route="consumo"><span class="icon">🔥</span><span data-i18n="navConsumo"></span></a>
         <a href="#faq" data-route="faq"><span class="icon">📘</span><span data-i18n="navFaq"></span></a>
       </nav>
       <div class="inline-stats">
@@ -1003,16 +1008,15 @@
               <div class="grid-3">
                 <div class="field">
                   <label data-i18n="temperatureUnits"></label>
-                  <div class="chip-row" id="temperatureUnitSelector">
-                    <button class="chip" data-temp-unit="C">°C</button>
-                    <button class="chip" data-temp-unit="F">°F</button>
-                  </div>
-                </div>
-                <div class="field">
-                  <label data-i18n="pressureUnits"></label>
-                  <div class="chip-row" id="pressureUnitSelector">
-                    <button class="chip" data-pressure-unit="hPa">hPa</button>
-                    <button class="chip" data-pressure-unit="inHg">inHg</button>
+                  <div class="toggle-row">
+                    <div class="chip-row" id="temperatureUnitSelector">
+                      <button class="chip" data-temp-unit="C">°C</button>
+                      <button class="chip" data-temp-unit="F">°F</button>
+                    </div>
+                    <div class="chip-row" id="pressureUnitSelector">
+                      <button class="chip" data-pressure-unit="hPa">hPa</button>
+                      <button class="chip" data-pressure-unit="inHg">inHg</button>
+                    </div>
                   </div>
                 </div>
                 <div class="field">
@@ -1184,6 +1188,28 @@
           </div>
         </section>
 
+        <section id="page-consumo" class="page">
+          <div class="page-stack">
+            <div class="panel">
+              <div class="grid-3">
+                <div class="field">
+                  <label for="consumoHourly" data-i18n="consumoHourly"></label>
+                  <input id="consumoHourly" type="number" min="0" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="consumoMinutes" data-i18n="consumoMinutes"></label>
+                  <input id="consumoMinutes" type="number" min="0" step="1">
+                </div>
+                <div class="result-card">
+                  <strong data-i18n="consumoTotal"></strong>
+                  <div class="result-value" id="consumoTotalValue">0.00 kg</div>
+                  <small data-i18n="consumoSubtitle"></small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section id="page-faq" class="page">
           <div class="page-stack">
             <div class="panel">
@@ -1225,6 +1251,7 @@
     <a href="#conversione" data-route="conversione"><span class="icon">🧮</span><span data-i18n="navConversione"></span></a>
     <a href="#storico" data-route="storico"><span class="icon">🕘</span><span data-i18n="navStorico"></span></a>
     <a href="#log" data-route="log"><span class="icon">🛢️</span><span data-i18n="navLog"></span></a>
+    <a href="#consumo" data-route="consumo"><span class="icon">🔥</span><span data-i18n="navConsumo"></span></a>
     <a href="#faq" data-route="faq"><span class="icon">📘</span><span data-i18n="navFaq"></span></a>
   </nav>
 
@@ -1243,7 +1270,7 @@
   </div>
 
   <script>
-    const routes = ['home', 'meteo', 'conversione', 'storico', 'log', 'faq'];
+    const routes = ['home', 'meteo', 'conversione', 'storico', 'log', 'consumo', 'faq'];
     const storageKeys = {
       language: 'jetFuel.language',
       theme: 'jetFuel.theme',
@@ -1263,12 +1290,19 @@
     };
 
     const quickCities = [
+      { name: 'Bari', lat: 41.1171, lon: 16.8719 },
+      { name: 'Brindisi', lat: 40.6327, lon: 17.9418 },
+      { name: 'Catania', lat: 37.5079, lon: 15.083 },
+      { name: 'Cirò Marina', lat: 39.3738, lon: 17.1267 },
+      { name: 'Foggia', lat: 41.4622, lon: 15.5446 },
+      { name: 'Lamezia', lat: 38.9626, lon: 16.3097 },
+      { name: 'Lampedusa', lat: 35.5013, lon: 12.609 },
+      { name: 'Messina', lat: 38.1938, lon: 15.554 },
+      { name: 'Palermo', lat: 38.1157, lon: 13.3615 },
+      { name: 'Pantelleria', lat: 36.8282, lon: 11.9465 },
+      { name: 'Reggio Calabria', lat: 38.1113, lon: 15.6479 },
       { name: 'Roma', lat: 41.9028, lon: 12.4964 },
-      { name: 'Milano', lat: 45.4642, lon: 9.19 },
-      { name: 'Napoli', lat: 40.8518, lon: 14.2681 },
-      { name: 'Torino', lat: 45.0703, lon: 7.6869 },
-      { name: 'Venezia', lat: 45.4408, lon: 12.3155 },
-      { name: 'Catania', lat: 37.5079, lon: 15.083 }
+      { name: 'Salerno', lat: 40.6824, lon: 14.7681 }
     ];
 
     const weatherCodes = {
@@ -1304,6 +1338,7 @@
         navConversione: 'Conversione',
         navStorico: 'Storico',
         navLog: 'Log',
+        navConsumo: 'Consumo',
         navFaq: 'FAQ',
         appBadge: 'Jet A-1 Fuel Suite',
         sidebarSubtitle: 'Conversione carburante avio, meteo operativo e log rifornimenti in un’unica app.',
@@ -1382,6 +1417,11 @@
         historyEmpty: 'Nessun calcolo salvato.',
         logTitle: 'Refueling log',
         logSubtitle: 'Registra rifornimenti, modifica voci ed esporta il registro.',
+        consumoTitle: 'Consumo carburante',
+        consumoSubtitle: 'Calcola il consumo totale partendo dal consumo orario e dai minuti.',
+        consumoHourly: 'Consumo orario (kg/h)',
+        consumoMinutes: 'Minuti',
+        consumoTotal: 'Consumo totale (kg)',
         logAutofillWeather: 'Auto-fill meteo',
         logAutofillCalc: 'Auto-fill conversione',
         logStatsEntries: 'Voci',
@@ -1460,6 +1500,7 @@
         navConversione: 'Conversion',
         navStorico: 'History',
         navLog: 'Log',
+        navConsumo: 'Consumo',
         navFaq: 'FAQ',
         appBadge: 'Jet A-1 Fuel Suite',
         sidebarSubtitle: 'Aviation fuel conversion, operational weather and refueling logs in one app.',
@@ -1538,6 +1579,11 @@
         historyEmpty: 'No saved calculations.',
         logTitle: 'Refueling log',
         logSubtitle: 'Record refuelings, edit entries and export the register.',
+        consumoTitle: 'Fuel consumption',
+        consumoSubtitle: 'Calculate total consumption from hourly burn and minutes.',
+        consumoHourly: 'Hourly consumption (kg/h)',
+        consumoMinutes: 'Minutes',
+        consumoTotal: 'Total consumption (kg)',
         logAutofillWeather: 'Auto-fill weather',
         logAutofillCalc: 'Auto-fill conversion',
         logStatsEntries: 'Entries',
@@ -1718,6 +1764,9 @@
       logStatsKg: document.getElementById('logStatsKg'),
       logStatsLiters: document.getElementById('logStatsLiters'),
       logStatsDensity: document.getElementById('logStatsDensity'),
+      consumoHourly: document.getElementById('consumoHourly'),
+      consumoMinutes: document.getElementById('consumoMinutes'),
+      consumoTotalValue: document.getElementById('consumoTotalValue'),
       densityTableBody: document.getElementById('densityTableBody'),
       referencesGrid: document.getElementById('referencesGrid'),
       howItWorksText: document.getElementById('howItWorksText'),
@@ -2673,6 +2722,15 @@
       });
     }
 
+    function updateConsumo() {
+      const hourly = Number(els.consumoHourly?.value || 0);
+      const minutes = Number(els.consumoMinutes?.value || 0);
+      const total = (hourly / 60) * minutes;
+      if (els.consumoTotalValue) {
+        els.consumoTotalValue.textContent = `${formatNumber(total, 2)} kg`;
+      }
+    }
+
     function renderDensityTable() {
       const temperatures = [-40, -20, 0, 15, 30, 45, 60];
       els.densityTableBody.innerHTML = temperatures.map((temp) => {
@@ -2778,6 +2836,7 @@
       renderHistory();
       renderLog();
       resetLogForm(false);
+      updateConsumo();
       renderSummaries();
       renderRoute();
       cleanupServiceWorkersAndCaches();
@@ -2859,6 +2918,8 @@
     els.resetLogButton.addEventListener('click', () => resetLogForm(true));
     els.exportLogCsvButton.addEventListener('click', exportLogCsv);
     els.exportLogPdfButton.addEventListener('click', exportLogPdf);
+    els.consumoHourly?.addEventListener('input', updateConsumo);
+    els.consumoMinutes?.addEventListener('input', updateConsumo);
     els.downloadQrButton.addEventListener('click', downloadQr);
     els.closeQrButton.addEventListener('click', closeQrModal);
     els.qrModal.addEventListener('click', (event) => {
