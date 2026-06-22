@@ -397,6 +397,22 @@
       flex: 1 1 10rem;
     }
 
+    #consumoDeparturePresets,
+    #consumoHourlyPresets {
+      flex-wrap: nowrap;
+      gap: 0.4rem;
+      overflow-x: hidden;
+    }
+
+    #consumoDeparturePresets .chip,
+    #consumoHourlyPresets .chip {
+      min-height: 2.2rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      flex: 1 1 auto;
+      white-space: nowrap;
+    }
+
     .chip,
     .action-button,
     .ghost-button,
@@ -2030,10 +2046,10 @@
     function getRouteFromHash() {
       const rawHash = window.location.hash || '';
       const hash = rawHash.replace('#', '');
-      if (!hash || hash === 'home') {
-        return 'meteo';
+      if (!hash) {
+        return 'home';
       }
-      return routes.includes(hash) ? hash : 'meteo';
+      return routes.includes(hash) ? hash : 'home';
     }
 
     function syncConversionFromWeather() {
@@ -2047,9 +2063,6 @@
 
     function renderRoute() {
       state.route = getRouteFromHash();
-      if ((!window.location.hash || window.location.hash === '#' || window.location.hash === '#home') && window.location.hash !== '#meteo') {
-        window.history.replaceState(null, '', '#meteo');
-      }
       els.pages.forEach((page) => {
         page.classList.toggle('active', page.id === `page-${state.route}`);
       });
@@ -2061,8 +2074,13 @@
       if (state.route === 'meteo' && state.map) {
         setTimeout(() => state.map.invalidateSize(), 120);
       }
-      if (state.route === 'conversione' && state.weather) {
-        syncConversionFromWeather();
+      if (state.route === 'conversione') {
+        if (state.weather) {
+          syncConversionFromWeather();
+        }
+        updateSliderVisual(els.massSlider, ['#ffd54a', '#ffd54a', '#ffd54a']);
+        updateSliderVisual(els.temperatureSlider, ['#ffd54a', '#ff9f1c', '#ff5a36']);
+        updateSliderVisual(els.pressureSlider, ['#4da3ff', '#2fd0c8', '#6fe38a']);
       }
     }
 
