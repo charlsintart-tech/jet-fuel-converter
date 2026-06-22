@@ -1194,10 +1194,22 @@
                 <div class="field">
                   <label for="consumoDeparture" data-i18n="consumoDeparture"></label>
                   <input id="consumoDeparture" type="number" min="0" step="0.1">
+                  <div class="chip-row" id="consumoDeparturePresets">
+                    <button class="chip" type="button" data-consumo-departure="200">200</button>
+                    <button class="chip" type="button" data-consumo-departure="350">350</button>
+                    <button class="chip" type="button" data-consumo-departure="550">550</button>
+                    <button class="chip" type="button" data-consumo-departure="600">600</button>
+                    <button class="chip" type="button" data-consumo-departure="650">650</button>
+                  </div>
                 </div>
                 <div class="field">
                   <label for="consumoHourly" data-i18n="consumoHourly"></label>
                   <input id="consumoHourly" type="number" min="0" step="0.1">
+                  <div class="chip-row" id="consumoHourlyPresets">
+                    <button class="chip" type="button" data-consumo-hourly="200">200</button>
+                    <button class="chip" type="button" data-consumo-hourly="300">300</button>
+                    <button class="chip" type="button" data-consumo-hourly="400">400</button>
+                  </div>
                 </div>
                 <div class="field">
                   <label for="consumoMinutes" data-i18n="consumoMinutes"></label>
@@ -1760,7 +1772,9 @@
       logStatsLiters: document.getElementById('logStatsLiters'),
       logStatsDensity: document.getElementById('logStatsDensity'),
       consumoDeparture: document.getElementById('consumoDeparture'),
+      consumoDeparturePresets: document.getElementById('consumoDeparturePresets'),
       consumoHourly: document.getElementById('consumoHourly'),
+      consumoHourlyPresets: document.getElementById('consumoHourlyPresets'),
       consumoMinutes: document.getElementById('consumoMinutes'),
       consumoTotalValue: document.getElementById('consumoTotalValue'),
       consumoRemainingValue: document.getElementById('consumoRemainingValue'),
@@ -2005,8 +2019,15 @@
     }
 
     function getRouteFromHash() {
-      const hash = window.location.hash.replace('#', '') || 'home';
-      return routes.includes(hash) ? hash : 'home';
+      const rawHash = window.location.hash || '';
+      const hash = rawHash.replace('#', '');
+      if (!hash || hash === 'home') {
+        if (window.location.hash !== '#meteo') {
+          window.location.hash = '#meteo';
+        }
+        return 'meteo';
+      }
+      return routes.includes(hash) ? hash : 'meteo';
     }
 
     function syncConversionFromWeather() {
@@ -2290,16 +2311,15 @@
         return;
       }
       const message = [
-        'Jet Fuel Converter',
-        `Fuel: ${entry.fuelType}`,
-        `Mass: ${formatNumber(entry.massKg, 2)} kg`,
-        `Volume: ${formatNumber(entry.volumeLiters, 2)} L`,
-        `US Gallons: ${formatNumber(entry.volumeLiters * 0.2641720524, 2)}`,
-        `Imperial Gallons: ${formatNumber(entry.volumeLiters * 0.2199692483, 2)}`,
-        `Density: ${formatNumber(entry.density, 4)} kg/L`,
-        `Temperature: ${formatNumber(entry.temperatureC, 1)} °C`,
-        `Pressure: ${formatNumber(entry.pressureHpa, 1)} hPa`
-      ].join('\n');
+        `Città: ${state.weather?.city || '-'}`,
+        `Kg: ${formatNumber(entry.massKg, 2)}`,
+        `Litri: ${formatNumber(entry.volumeLiters, 2)}`,
+        `Temperatura: ${formatNumber(entry.temperatureC, 1)}°C`,
+        `Pressione: ${formatNumber(entry.pressureHpa, 2)} hPa`,
+        `Densità: ${formatNumber(entry.density, 4)} kg/L`,
+        `Umidità: ${state.weather ? `${formatNumber(state.weather.humidity, 0)}%` : '-'}`,
+        `Vento: ${state.weather ? `${formatNumber(state.weather.windSpeed, 1)} km/h` : '-'}`
+      ].join(' | ');
       const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank', 'noopener,noreferrer');
     }
@@ -2922,6 +2942,18 @@
     els.consumoDeparture?.addEventListener('input', updateConsumo);
     els.consumoHourly?.addEventListener('input', updateConsumo);
     els.consumoMinutes?.addEventListener('input', updateConsumo);
+    els.consumoDeparturePresets?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-consumo-departure]');
+      if (!button) return;
+      els.consumoDeparture.value = button.dataset.consumoDeparture;
+      updateConsumo();
+    });
+    els.consumoHourlyPresets?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-consumo-hourly]');
+      if (!button) return;
+      els.consumoHourly.value = button.dataset.consumoHourly;
+      updateConsumo();
+    });
     els.downloadQrButton.addEventListener('click', downloadQr);
     els.closeQrButton.addEventListener('click', closeQrModal);
     els.qrModal.addEventListener('click', (event) => {
