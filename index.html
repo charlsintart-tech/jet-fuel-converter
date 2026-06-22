@@ -398,7 +398,8 @@
     }
 
     #consumoDeparturePresets,
-    #consumoHourlyPresets {
+    #consumoHourlyPresets,
+    #consumoMinutesPresets {
       display: flex !important;
       flex-wrap: nowrap !important;
       gap: 4px !important;
@@ -406,7 +407,8 @@
     }
 
     #consumoDeparturePresets .chip,
-    #consumoHourlyPresets .chip {
+    #consumoHourlyPresets .chip,
+    #consumoMinutesPresets .chip {
       padding: 4px 8px !important;
       font-size: 0.8rem !important;
       min-width: 0 !important;
@@ -1241,6 +1243,18 @@
                 <div class="field">
                   <label for="consumoMinutes" data-i18n="consumoMinutes"></label>
                   <input id="consumoMinutes" type="number" min="0" step="1">
+                  <div class="chip-row" id="consumoMinutesPresets">
+                    <button class="chip" type="button" data-consumo-minutes="10">10</button>
+                    <button class="chip" type="button" data-consumo-minutes="15">15</button>
+                    <button class="chip" type="button" data-consumo-minutes="20">20</button>
+                    <button class="chip" type="button" data-consumo-minutes="25">25</button>
+                    <button class="chip" type="button" data-consumo-minutes="30">30</button>
+                    <button class="chip" type="button" data-consumo-minutes="35">35</button>
+                    <button class="chip" type="button" data-consumo-minutes="40">40</button>
+                    <button class="chip" type="button" data-consumo-minutes="45">45</button>
+                    <button class="chip" type="button" data-consumo-minutes="50">50</button>
+                    <button class="chip" type="button" data-consumo-minutes="55">55</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1803,6 +1817,7 @@
       consumoHourly: document.getElementById('consumoHourly'),
       consumoHourlyPresets: document.getElementById('consumoHourlyPresets'),
       consumoMinutes: document.getElementById('consumoMinutes'),
+      consumoMinutesPresets: document.getElementById('consumoMinutesPresets'),
       consumoTotalValue: document.getElementById('consumoTotalValue'),
       consumoRemainingValue: document.getElementById('consumoRemainingValue'),
       consumoRefuelKgValue: document.getElementById('consumoRefuelKgValue'),
@@ -2340,12 +2355,12 @@
       els.conversionStatus.textContent = t('historySaved');
     }
 
-    function shareOnWhatsApp() {
+    function buildShareMessage() {
       const entry = state.currentCalculation;
       if (!entry) {
-        return;
+        return '';
       }
-      const message = [
+      return [
         `Città: ${state.weather?.city || '-'}`,
         `Kg: ${formatNumber(entry.massKg, 2)}`,
         `Litri: ${formatNumber(entry.volumeLiters, 2)}`,
@@ -2355,6 +2370,13 @@
         `Umidità: ${state.weather ? `${formatNumber(state.weather.humidity, 0)}%` : '-'}`,
         `Vento: ${state.weather ? `${formatNumber(state.weather.windSpeed, 1)} km/h` : '-'}`
       ].join('\n');
+    }
+
+    function shareOnWhatsApp() {
+      const message = buildShareMessage();
+      if (!message) {
+        return;
+      }
       const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank', 'noopener,noreferrer');
     }
@@ -2562,15 +2584,18 @@
     }
 
     function openQrModal() {
-      const payload = state.currentCalculation;
+      const message = buildShareMessage();
       els.qrBox.innerHTML = '';
+      if (!message) {
+        return;
+      }
       if (!window.QRCode) {
         els.qrBox.textContent = t('qrFallback');
         els.qrModal.classList.add('open');
         return;
       }
       new QRCode(els.qrBox, {
-        text: JSON.stringify(payload, null, 2),
+        text: message,
         width: 180,
         height: 180
       });
@@ -2804,6 +2829,7 @@
       }
       setPresetActive(els.consumoDeparturePresets, departure || '', 'data-consumo-departure');
       setPresetActive(els.consumoHourlyPresets, hourly || '', 'data-consumo-hourly');
+      setPresetActive(els.consumoMinutesPresets, minutes || '', 'data-consumo-minutes');
     }
 
     function renderDensityTable() {
@@ -2996,6 +3022,12 @@
       const button = event.target.closest('[data-consumo-hourly]');
       if (!button) return;
       els.consumoHourly.value = button.dataset.consumoHourly;
+      updateConsumo();
+    });
+    els.consumoMinutesPresets?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-consumo-minutes]');
+      if (!button) return;
+      els.consumoMinutes.value = button.dataset.consumoMinutes;
       updateConsumo();
     });
     els.downloadQrButton.addEventListener('click', downloadQr);
