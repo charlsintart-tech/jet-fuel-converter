@@ -399,16 +399,19 @@
 
     #consumoDeparturePresets,
     #consumoHourlyPresets {
-      flex-wrap: nowrap;
-      gap: 0.4rem;
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      gap: 4px !important;
       overflow-x: hidden;
     }
 
     #consumoDeparturePresets .chip,
     #consumoHourlyPresets .chip {
-      min-height: 2.2rem;
-      padding: 0.5rem 0.75rem;
-      font-size: 0.85rem;
+      padding: 4px 8px !important;
+      font-size: 0.8rem !important;
+      min-width: 0 !important;
+      min-height: 2rem;
+      flex-shrink: 1 !important;
       flex: 1 1 auto;
       white-space: nowrap;
     }
@@ -505,7 +508,7 @@
     .slider::-webkit-slider-runnable-track {
       height: 0.875rem;
       border-radius: 999px;
-      background: var(--track, rgba(255, 255, 255, 0.08));
+      background: rgba(255, 255, 255, 0.08);
       border: 1px solid color-mix(in srgb, var(--accent-strong) 18%, transparent);
     }
 
@@ -524,7 +527,7 @@
     .slider::-moz-range-track {
       height: 0.875rem;
       border-radius: 999px;
-      background: var(--track, rgba(255, 255, 255, 0.08));
+      background: rgba(255, 255, 255, 0.08);
       border: 1px solid color-mix(in srgb, var(--accent-strong) 18%, transparent);
     }
 
@@ -709,7 +712,8 @@
       background: rgba(6, 14, 24, 0.92);
       backdrop-filter: blur(1rem);
       border-top: 1px solid var(--panel-border);
-      z-index: 40;
+      z-index: 1000;
+      pointer-events: auto;
     }
 
     .tabbar a {
@@ -870,6 +874,7 @@
       }
     }
   </style>
+  <style id="dynamicSliderStyles"></style>
 </head>
 <body>
   <div class="app-shell">
@@ -1901,14 +1906,17 @@
     }
 
     function updateSliderVisual(slider, colors) {
-      const min = Number(slider.min);
-      const max = Number(slider.max);
-      const value = Number(slider.value);
-      const percent = ((value - min) / Math.max(1, (max - min))) * 100;
+      const styleElement = document.getElementById('dynamicSliderStyles');
+      if (!styleElement || !slider?.id) {
+        return;
+      }
       const track = colors[0] === colors[1] && colors[1] === colors[2]
         ? colors[0]
-        : `linear-gradient(90deg, ${colors[0]} 0%, ${colors[1]} ${Math.max(35, percent * 0.6)}%, ${colors[2]} 100%)`;
-      slider.style.setProperty('--track', track);
+        : `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
+      const rule = `#${slider.id}::-webkit-slider-runnable-track { background: ${track} !important; }\n#${slider.id}::-moz-range-track { background: ${track} !important; }`;
+      const existing = styleElement.textContent || '';
+      const pattern = new RegExp(`#${slider.id}::-(webkit-slider-runnable-track|moz-range-track) \{[^}]*\}\n?`, 'g');
+      styleElement.textContent = existing.replace(pattern, '').trim() + (existing.trim() ? '\n' : '') + rule;
     }
 
     function populateFuelSelects() {
@@ -3007,9 +3015,13 @@
 
     initializeMap();
     attachLogHandlers();
-    document.addEventListener('DOMContentLoaded', initializeDefaults, { once: true });
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeDefaults();
+      renderRoute();
+    }, { once: true });
     if (document.readyState !== 'loading') {
       initializeDefaults();
+      renderRoute();
     }
   </script>
 </body>
